@@ -1,0 +1,25 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ruby
+.bundle/
+.ruby-lsp/
+vendor/bundle/
+log/
+tmp/
+
+# dotenv（もし使う場合）
+.env
+.env.*
+
+# Docker
+*.log
+
+# macOS
+.DS_Store
+
+# エディタ
+.vscode/
