@@ -1,0 +1,12 @@
+{
+    "name": "ruby-js-app",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+      "lint": "eslint app/public/script.js"
+    },
+    "devDependencies": {
+      "eslint": "^8.0.0"
+    }
+  }

@@ -1,0 +1,13 @@
+
+AllCops:
+  TargetRubyVersion: 3.4
+  NewCops: enable
+  Exclude:
+    - 'db/**/*'
+    - 'vendor/**/*'
+
+Layout/LineLength:
+  Max: 120
+
+Metrics/MethodLength:
+  Max: 15
