@@ -1,13 +1,131 @@
-
 AllCops:
-  TargetRubyVersion: 3.4
+  TargetRubyVersion: 3.2
   NewCops: enable
   Exclude:
-    - 'db/**/*'
     - 'vendor/**/*'
+    - 'tmp/**/*'
+  DisplayCopNames: true
+  DisplayStyleGuide: true
+  ExtraDetails: true
+
+require:
+  - rubocop-performance
 
 Layout/LineLength:
   Max: 120
+  AllowHeredoc: true
+  AllowURI: true
+  URISchemes:
+    - http
+    - https
+
+Layout/EmptyLinesAroundBlockBody:
+  Enabled: false
+
+Layout/EmptyLinesAroundClassBody:
+  Enabled: true
+
+Layout/TrailingEmptyLines:
+  Enabled: true
+
+Layout/SpaceAroundMethodCallOperator:
+  Enabled: true
+
+Layout/HashAlignment:
+  EnforcedColonStyle: table
+  EnforcedHashRocketStyle: table
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
+  MinSize: 3
+
+Style/CollectionMethods:
+  Enabled: true
+
+Style/HashSyntax:
+  EnforcedStyle: ruby19_no_mixed_keys
+
+Style/Lambda:
+  EnforcedStyle: literal
+
+Style/RedundantReturn:
+  Enabled: true
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+  EnforcedStyleForSingleLine: no_comma
+
+Style/TrailingCommaInLiteral:
+  EnforcedStyleForMultiline: comma
+  EnforcedStyleForSingleLine: no_comma
 
 Metrics/MethodLength:
-  Max: 15
+  Max: 25
+  CountComments: false
+
+Metrics/ClassLength:
+  Max: 200
+
+Metrics/ModuleLength:
+  Max: 200
+
+Metrics/BlockLength:
+  Max: 30
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
+
+Naming/MethodParameterName:
+  Enabled: false
+
+Performance/Count:
+  Enabled: true
+
+Performance/FixedSize:
+  Enabled: true
+
+Performance/StringInclude:
+  Enabled: true
+
+Performance/Detect:
+  Enabled: true
+
+Performance/ReverseFirst:
+  Enabled: true
+
+Performance/StartWith:
+  Enabled: true
+
+Performance/EndWith:
+  Enabled: true
+
+Lint/RaiseException:
+  Enabled: true
+
+Lint/StructNewOverride:
+  Enabled: true
+
+Lint/AmbiguousBlockAssociation:
+  Enabled: true
+
+Lint/ShadowingOuterLocalVariable:
+  Enabled: true
+
+Lint/UnusedMethodArgument:
+  Enabled: true
+  AllowUnusedKeywordArguments: false
+
+Lint/UnusedBlockArgument:
+  Enabled: true
