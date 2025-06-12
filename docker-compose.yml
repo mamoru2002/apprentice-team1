@@ -9,15 +9,17 @@ services:
       - .:/app
     depends_on:
       - db
+    env_file:
+      - .env
 
   db:
     image: mysql:8.0
     container_name: mysql_container
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: study_app
+      MYSQL_DATABASE: app
       MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      MYSQL_PASSWORD: password  
     ports:
       - "3306:3306"
     volumes:
