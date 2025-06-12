@@ -3,11 +3,11 @@ require 'bundler/setup'
 require 'dotenv/load'
 require 'webrick'
 require_relative '../app/db'
-require_relative '../config/routes'
 require_relative '../app/controllers/application_controller'
 require_relative '../app/controllers/healthcheck_controller'
 require_relative '../app/controllers/study_logs_controller'
 require_relative '../app/controllers/expense_logs_controller'
+require_relative '../config/routes'
 
 port = ENV.fetch('PORT', '4567').to_i
 server = WEBrick::HTTPServer.new(Port: port)
