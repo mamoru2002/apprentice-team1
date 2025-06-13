@@ -13,7 +13,6 @@ tmp/
 
 # dotenv（もし使う場合）
 .env
-.env.*
 
 # Docker
 *.log
