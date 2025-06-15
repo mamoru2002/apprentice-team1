@@ -46,7 +46,26 @@ module Controllers
     end
 
     def do_GET(_req, res)
-      render_json(res, status: 200, body: [])
+      begin
+        results = DB::Client.instance.query("SELECT id, title, duration, created_at FROM study_logs ORDER BY created_at DESC")
+        
+        logs = results.map do |row|
+          { 
+            id: row[:id], 
+            title: row[:title], 
+            duration_seconds: row[:duration], # DBには秒単位で保存されている想定
+            created_at: row[:created_at].strftime('%Y-%m-%dT%H:%M:%SZ')
+          }
+        end
+        render_json(res, status: 200, body: logs)
+      rescue Mysql2::Error => e
+        warn "Database error fetching logs: #{e.message}"
+        render_json(res, status: 500, body: { error: 'データベースエラーにより記録を取得できませんでした。' })
+      rescue => e
+        warn "Unexpected error fetching logs: #{e.class} - #{e.message}\n#{e.backtrace.join("\n")}"
+        render_json(res, status: 500, body: { error: "予期せぬエラーが発生しました: #{e.class}" })
+      end
+
     end
 
     private
