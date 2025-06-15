@@ -1,3 +1,5 @@
+require_relative '../app/controllers/study_logs_controller'
+
 module Config
   Routes = {
     "/healthcheck"  => Controllers::HealthcheckController,
