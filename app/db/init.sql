@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS study_logs (
 CREATE TABLE IF NOT EXISTS expense_logs (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   amount     INT                  NOT NULL,
-  memo       VARCHAR(255),
+  title       VARCHAR(255),
   created_at DATETIME             DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_expense_created_at (created_at)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
