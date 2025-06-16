@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 INSERT INTO study_logs (title, duration, created_at) VALUES
 ('Rubyの学習', 3600, '2024-01-15 10:00:00'),
 ('JavaScriptの課題', 1800, '2024-01-15 14:30:00'),
