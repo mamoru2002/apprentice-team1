@@ -6,6 +6,6 @@ module Controllers
       res["Content-Type"] = "application/json"
       res.body = JSON.generate(body)
     end
-    def parse_json(req) = JSON.parse(req.body) rescue nil
+    def parse_json(req) = JSON.parse(req.body, symbolize_names: true) rescue nil
   end
 end
