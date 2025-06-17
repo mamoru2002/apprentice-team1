@@ -1,0 +1,165 @@
+html {
+  font-size: 16px;
+}
+body {
+  font-family: sans-serif;
+  color: #73a4bc;
+  /* background: #f4f4f4; */
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.calendar {
+  width: 700px;
+  /* max-height: 100vh; */
+  background: white;
+  /* border-radius: 8px; */
+  overflow: hidden;
+  /* box-shadow: 0 0 10px rgba(0,0,0,0.1); */
+}
+
+.header {
+  text-align: center;
+  /* padding: 0.3rem; */
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.header .year {
+  font-size: 1.4rem;
+  /* margin-bottom: 0.2rem; */
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.month-nav button {
+  /* background: #dbefff; */
+  border: none;
+  padding: 0.3rem 0.6rem;
+  font-size: 1.2rem;
+  color: #d9d9d9;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.month-nav button:hover {
+  font-weight: bold;
+  color: #5c8396;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: white;
+  text-align: center;
+  font-weight: bold;
+}
+
+.day-name {
+  padding: 0.5rem;
+}
+.sunday {
+  color: #fe6262;
+}
+.dates {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border: 1px solid #7dc9d8;;
+}
+
+.date {
+  height: 90px;
+  border-bottom: 1px solid #7dc9d8;
+  border-right: 1px solid #7dc9d8;
+  padding: 0.25rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.date:nth-child(7n) {
+  border-right: none;
+}
+
+.date:nth-child(n+36) {
+  border-bottom: none;
+}
+
+.date-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(114, 114, 114, 0.619);
+  display: none;
+  z-index: 2;
+}
+
+.date:hover .date-overlay,
+.date:hover .date-links {
+  display: block;
+}
+
+.date-links {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  text-align: center;
+}
+
+.detail-link {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.date .day-number {
+  font-weight: bold;
+  /* margin-bottom: 0.25rem; */
+}
+
+.date.today {
+  border-right: 4px solid;
+  border-bottom: 4px solid;
+  border-top: 3px solid;
+  border-left: 3px solid;
+  box-sizing: border-box;
+}
+
+.date .expense {
+  background: #fef7c1;
+  font-size: 0.8rem;
+  border-radius: 15px;
+  text-align: center;
+  line-height: 1.9rem;
+  color: #777777;
+  display: block;
+}
+
+.date .hours {
+  background: #dfe6ec;
+  font-size: 0.8rem;
+  border-radius: 15px;
+  text-align: center;
+  line-height: 1.9rem;
+  color: #777777;
+  display: block;
+}
+
+/* 前月・翌月のグレー表示 */
+.other-month {
+  color: #bbb;
+  background-color: #bbbbbb49;
+}

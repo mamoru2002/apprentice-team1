@@ -1,12 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>My App</title>
-  <link rel="stylesheet" href="/style.css" />
+  <meta charset="UTF-8">
+  <title>カレンダー</title>
+  <link rel="stylesheet" href="https://unpkg.com/ress@4.0.0/dist/ress.min.css">
+  <link rel="stylesheet" href="/styles/calendar.css">
 </head>
 <body>
-  <h1>Hello, Ruby + WEBrick!</h1>
-  <script src="/script.js"></script>
+  <div class="calendar">
+    <div class="header">
+      <div class="year" id="current-year"></div>
+      <div class="month-nav">
+        <button id="prev-month">〈</button>
+        <span class="month" id="current-month"></span>
+        <button id="next-month">〉</button>
+      </div>
+    </div>
+    <div class="days">
+      <div class="day-name sunday">SUN</div>
+      <div class="day-name">MON</div>
+      <div class="day-name">TUE</div>
+      <div class="day-name">WED</div>
+      <div class="day-name">THU</div>
+      <div class="day-name">FRI</div>
+      <div class="day-name">SAT</div>
+    </div>
+    <div class="dates" id="calendar-dates"></div>
+  </div>
+
+  <script src="/scripts/calendar.js" defer></script>
 </body>
 </html>
