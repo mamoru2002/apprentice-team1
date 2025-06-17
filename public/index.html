@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>時と金なり</title>
+    <link rel="stylesheet" href="./main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar expense-tracker-sidebar">
+            <div class="expense-tracker-container">
+                <h2>金額トラッカー</h2>
+                <div class="amount-input-display">
+                    <span class="currency-symbol">¥</span>
+                    <input type="number" id="amountInput" placeholder="0">
+                </div>
+    
+                <div class="category-selection">
+                    <ul id="categoryList" class="category-list">
+                        <li class="category-item active" data-category="食費">食費</li>
+                        <li class="category-item" data-category="衣服">衣服</li>
+                        <li class="category-item" data-category="日用品">日用品</li>
+                        <li class="category-item" data-category="美容">美容</li>
+                        <li class="category-item" data-category="雑貨">雑貨</li>
+                    </ul>
+                </div>
+    
+                <button id="addCategoryButton" class="add-category-btn">+</button>
+                <button id="logExpenseButton" class="log-btn expense-log-btn">金額を登録</button>
+    
+                <div class="summary-display expense-summary">
+                    <p>支出合計</p>
+                    <p>月 ¥<span id="expenseMonthlyTotalAmount">0</span></p>
+                    <p>総 ¥<span id="expenseGrandTotalAmount">0</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar study-tracker-sidebar">
+            <div class="tracker-container">
+                <h2>学習時間トラッカー</h2>
+                <div class="stopwatch-display">
+                    <div id="timeDisplay">00:00:00.00</div>
+                    <button id="playPauseButton" class="play-pause-btn">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+
+                <div class="category-selection">
+                    <ul id="taskList" class="task-list">
+                        <li class="task-item active" data-task="Ruby">Ruby</li>
+                        <li class="task-item" data-task="CSS">CSS</li>
+                        <li class="task-item" data-task="JavaScript">JavaScript</li>
+                        <li class="task-item" data-task="HTML">HTML</li>
+                        <li class="task-item" data-task="Paiza">Paiza</li>
+                    </ul>
+                </div>
+
+                <button id="addTaskButton" class="add-task-btn">+</button>
+                <button id="logTimeButton" class="log-btn">学習時間を登録</button>
+
+                <div class="summary-display study-summary">
+                    <p>学習合計</p>
+                    <p>月 <span id="studyMonthlyTotal">0</span>h</p>
+                    <p>総 <span id="studyGrandTotal">0</span>h</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+</body>
+</html>

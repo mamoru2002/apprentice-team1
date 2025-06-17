@@ -15,4 +15,4 @@ COPY . .
 
 EXPOSE 4567
 
-CMD ["ruby", "app/app.rb"]
+CMD ["ruby", "server.rb"]

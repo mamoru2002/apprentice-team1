@@ -1,0 +1,324 @@
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background-color: #f0f4f8;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.app-container {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    max-width: 700px;
+    height: 100%;
+    align-items: stretch;
+}
+
+.sidebar {
+    flex: 1;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.tracker-container, .expense-tracker-container {
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 15px;
+    box-sizing: border-box;
+    flex-grow: 1;
+}
+.tracker-container h2, .expense-tracker-container h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 1.4em;
+}
+
+
+.tracker-container {
+    background-color: #e0eafc;
+}
+
+.stopwatch-display {
+    border: 2px solid #a7c5eb;
+    border-radius: 15px;
+    padding: 15px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background-color 0.3s ease;
+}
+
+.stopwatch-display.running {
+    background-color: #a7c5eb;
+}
+
+#timeDisplay {
+    font-size: 2.2em;
+    color: #555;
+    font-weight: bold;
+    margin-bottom: 12px;
+    transition: color 0.3s ease;
+    font-family: 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+}
+
+.stopwatch-display.running #timeDisplay {
+    color: #fff;
+}
+
+.play-pause-btn {
+    background-color: #6c92c5;
+    border: none;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2em;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: background-color 0.2s ease;
+}
+.play-pause-btn:hover {
+    background-color: #5a7daa;
+}
+
+
+
+.task-list, .category-list {
+    list-style: none;
+    padding: 0 5px;
+    margin: 0;
+}
+
+.task-item {
+    background-color: #e8f0fA;
+    color: #4a5568;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: 500;
+}
+.task-item:last-child {
+    margin-bottom: 0;
+}
+.task-item.active {
+    border: 3px, solid, #6c92c5;
+    color: #4a5568;
+    font-weight: bold;
+}
+.task-item:hover:not(.active) {
+    background-color: #d0e1f9;
+}
+
+.summary-display {
+    border-radius: 15px;
+    padding: 15px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+.summary-display p {
+    margin: 6px 0;
+    font-size: 0.95em;
+}
+.summary-display p:first-child {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-bottom: 8px;
+}
+.summary-display span {
+    font-weight: bold;
+}
+
+.study-summary {
+    background-color: #a7c5eb;
+    color: #4a5568;
+}
+
+
+
+.expense-tracker-container {
+    background-color: #fffacd;
+}
+
+.amount-input-display {
+    background-color: #ffffff;
+    border: 1px solid #eee8aa;
+    border-radius: 15px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.currency-symbol {
+    font-size: 1.6em;
+    color: #555;
+    margin-right: 8px;
+    font-weight: bold;
+}
+
+#amountInput {
+    font-size: 2em;
+    color: #333;
+    font-weight: bold;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    width: 100%;
+    text-align: right;
+    font-family: 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+}
+#amountInput::placeholder {
+    color: #aaa;
+    font-weight: normal;
+}
+
+#amountInput::-webkit-outer-spin-button,
+#amountInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+#amountInput[type=number] {
+  -moz-appearance: textfield;
+}
+
+
+.category-selection {
+    background-color: #fff;
+    border: 1px solid #d1d9e6;
+    border-radius: 15px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    height: 180px;
+    overflow-y: auto;
+    position: relative;
+    justify-content: flex-start;
+}
+
+.category-item {
+    background-color: #fafad2;
+    color: #4a5568;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: 500;
+}
+.category-item:last-child {
+    margin-bottom: 0;
+}
+.category-item.active {
+    border: 3px, solid, #fbc11f;
+    color: #4a5568;
+    font-weight: bold;
+}
+.category-item:hover:not(.active) {
+    background-color: #f9f787;
+}
+
+.task-selection::-webkit-scrollbar, .category-selection::-webkit-scrollbar {
+    width: 6px;
+}
+.task-selection::-webkit-scrollbar-track, .category-selection::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 5px 0;
+}
+.task-selection::-webkit-scrollbar-thumb {
+    background-color: #b8cce0;
+    border-radius: 10px;
+}
+.category-selection::-webkit-scrollbar-thumb {
+    background-color: #dcdcdc;
+    border-radius: 10px;
+}
+.task-selection, .category-selection {
+  scrollbar-width: thin;
+}
+.task-selection { scrollbar-color: #b8cce0 transparent; }
+.category-selection { scrollbar-color: #dcdcdc transparent; }
+
+
+.add-task-btn, .add-category-btn, .log-btn {
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.add-task-btn:hover, .add-category-btn:hover, .log-btn:hover {
+    opacity: 0.9;
+}
+.add-task-btn:active, .add-category-btn:active, .log-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.add-task-btn {
+    background-color: #ced4da;
+    color: #495057;
+}
+.add-task-btn:hover {
+    background-color: #bac0c6;
+}
+
+.add-category-btn {
+    background-color: #d3d3d3;
+    color: #333;
+}
+.add-category-btn:hover {
+    background-color: #c0c0c0;
+}
+
+.log-btn { /* 学習時間登録ボタン */
+    background-color: #6c92c5;
+    color: white;
+}
+.log-btn:hover {
+    background-color: #5a7daa;
+}
+
+.expense-log-btn { /* 金額登録ボタン */
+    background-color: #ffae42;
+    color: white;
+}
+.expense-log-btn:hover {
+    background-color: #ff8c00;
+}
+
+.expense-summary {
+    background-color: #fff780;
+    color: #4a5568
+}
+.expense-summary p:first-child {
+    text-align: center;
+}

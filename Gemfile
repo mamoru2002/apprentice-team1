@@ -1,7 +1,11 @@
-source 'https://rubygems.org'
+# frozen_string_literal: true
 
-gem 'dotenv', require: 'dotenv/load'
+source 'https://rubygems.org'
+ruby '3.4.4'
+gem 'dotenv'
 gem 'mysql2'
-gem 'rubocop', require: false
 gem 'webrick'
-gem "bigdecimal"
+group :development, :test do
+  gem 'rubocop', require: false
+  gem 'rubocop-performance', require: false
+end
