@@ -8,7 +8,7 @@ AllCops:
   DisplayStyleGuide: true
   ExtraDetails: true
 
-require:
+plugins:
   - rubocop-performance
 
 Layout/LineLength:
@@ -67,9 +67,9 @@ Style/TrailingCommaInArguments:
   EnforcedStyleForMultiline: comma
   EnforcedStyleForSingleLine: no_comma
 
-Style/TrailingCommaInLiteral:
-  EnforcedStyleForMultiline: comma
-  EnforcedStyleForSingleLine: no_comma
+# Style/TrailingCommaInLiteral:
+#   EnforcedStyleForMultiline: comma
+#   EnforcedStyleForSingleLine: no_comma
 
 Metrics/MethodLength:
   Max: 25
