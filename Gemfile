@@ -2,6 +2,9 @@ source 'https://rubygems.org'
 
 gem 'dotenv', require: 'dotenv/load'
 gem 'mysql2'
-gem 'rubocop', require: false
 gem 'webrick'
 gem "bigdecimal"
+
+group :development do
+  gem 'rubocop', require: false
+end
