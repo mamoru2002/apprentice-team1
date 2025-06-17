@@ -6,7 +6,7 @@ require 'json'
 
 module Controllers
   class ExpenseLogsController < ApplicationController
-    private
+  
 
     def do_POST(req, res)
       payload = parse_json_body(req)

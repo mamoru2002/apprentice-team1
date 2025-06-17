@@ -9,9 +9,9 @@ module Controllers
   class SummariesController < ApplicationController
     def do_GET(req, res)
       case req.path
-      when '/expense_summary'
+      when '/api/expense_summary'
         handle_expense_summary(req, res)
-      when '/study_summary'
+      when '/api/study_summary'
         handle_study_summary(req, res)
       else
         render_json(res, status: 404, body: { error: 'Not Found' })
@@ -22,7 +22,7 @@ module Controllers
       render_json(res, status: 500, body: { error: "予期せぬサーバーエラーが発生しました: #{e.class}" })
     end
 
-    private
+    
 
     def handle_expense_summary(_req, res)
       today = Date.today
