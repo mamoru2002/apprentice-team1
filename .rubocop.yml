@@ -20,6 +20,30 @@ Naming/MethodName:
 Naming/MethodParameterName:
   MinNameLength: 2
 
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
+  MinSize: 3
+
+Style/CollectionMethods:
+  Enabled: true
+
+Style/HashSyntax:
+  EnforcedStyle: ruby19_no_mixed_keys
+
+Style/Lambda:
+  EnforcedStyle: literal
+
+Style/RedundantReturn:
+  Enabled: true
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+  EnforcedStyleForSingleLine: no_comma
+
+
 Metrics/MethodLength:
   Max: 25
 Metrics/AbcSize:
