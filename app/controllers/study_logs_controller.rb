@@ -20,6 +20,29 @@ module Controllers
       handle_server_error(res, e)
     end
 
+    def do_GET(_req, res)
+      results = DB::Client.instance.query(
+        "SELECT id, title, duration, created_at
+             FROM study_logs
+         ORDER BY created_at DESC",
+      )
+      logs = results.map do |row|
+        {
+          id: row[:id],
+          title: row[:title],
+          duration_seconds: row[:duration],
+          created_at: row[:created_at].strftime("%Y-%m-%dT%H:%M:%SZ")
+        }
+      end
+      render_json(res, status: 200, body: logs)
+    rescue Mysql2::Error => e
+      warn "Database error fetching study logs: #{e.message}"
+      render_json(res, status: 500, body: { error: "学習ログの取得に失敗しました。" })
+    rescue StandardError => e
+      warn "Unexpected error in StudyLogsController#do_GET: #{e.class} - #{e.message}"
+      render_json(res, status: 500, body: { error: "サーバーエラーが発生しました。" })
+    end
+
     def validate_params(payload)
       errors = []
       if payload[:taskName].to_s.empty?
