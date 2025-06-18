@@ -35,6 +35,7 @@ module Controllers
 
       grand_result = DB::Client.instance.query(
         "SELECT SUM(amount) AS total FROM expense_logs",
+        [],
       ).first
       grand_total = (grand_result[:total] || 0).to_i
 
@@ -56,6 +57,7 @@ module Controllers
 
       grand_result = DB::Client.instance.query(
         "SELECT SUM(duration) AS total FROM study_logs",
+        [],
       ).first
       grand_total = (grand_result[:total] || 0).to_i
 
