@@ -13,7 +13,7 @@ module Controllers
         handle_expense_summary(req, res)
       when "/api/study_summary"
         handle_study_summary(req, res)
-        elsemonthly_total
+      else
         render_json(res, status: 404, body: { error: "Not Found" })
       end
     rescue Mysql2::Error
@@ -45,7 +45,7 @@ module Controllers
     end
 
     def handle_study_summary(_req, res)
-      today = Date.today
+      today          = Date.today
       start_of_month = Date.new(today.year, today.month, 1)
 
       monthly_result = DB::Client.instance.query(
@@ -60,8 +60,8 @@ module Controllers
       grand_total = (grand_result[:total] || 0).to_i
 
       render_json(res, status: 200, body: {
-                    monthly_total: (monthly_total_seconds / 3600.0).round(2),
-                    grand_total: (grand_total_seconds / 3600.0).round(2)
+                    monthly_total: (monthly_total / 3600.0).round(2),
+                    grand_total: (grand_total / 3600.0).round(2)
                   })
     end
   end
