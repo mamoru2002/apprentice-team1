@@ -6,11 +6,16 @@ const workData = [
 ];
 
 let currentYear = new Date().getFullYear();
-let currentMonth = new Date().getMonth(); // 0-index
+let currentMonth = new Date().getMonth(); // 0-indexed month
+
+const calendarEl = document.getElementById('calendar-dates');
+const yearEl = document.getElementById('current-year');
+const monthEl = document.getElementById('current-month');
+const prevBtn = document.getElementById('prev-month');
+const nextBtn = document.getElementById('next-month');
 
 function renderCalendar(year, month) {
-  const calendar = document.getElementById('calendar-dates');
-  calendar.innerHTML = '';
+  calendarEl.innerHTML = '';
 
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -18,12 +23,10 @@ function renderCalendar(year, month) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const startDay = new Date(year, month, 1).getDay();
   const totalCells = 42;
-
   const prevMonthLastDate = new Date(year, month, 0).getDate();
 
-  // 年月表示を更新
-  document.getElementById('current-year').textContent = `${year}`;
-  document.getElementById('current-month').textContent = `${month + 1}`;
+  yearEl.textContent = `${year}`;
+  monthEl.textContent = `${month + 1}`;
 
   for (let i = 0; i < totalCells; i += 1) {
     const cell = document.createElement('div');
@@ -33,31 +36,25 @@ function renderCalendar(year, month) {
     dayNum.className = 'day-number';
 
     let dateStr = '';
-    let displayDay = '';
+    let displayDay = 0;
 
     if (i < startDay) {
-      // 前月
       displayDay = prevMonthLastDate - (startDay - 1 - i);
-      dayNum.textContent = displayDay;
-      cell.classList.add('other-month');
       const prevDate = new Date(year, month - 1, displayDay);
       dateStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(displayDay).padStart(2, '0')}`;
-    } else if (i >= startDay + daysInMonth) {
-      // 翌月
-      displayDay = i - (startDay + daysInMonth) + 1;
-      dayNum.textContent = displayDay;
       cell.classList.add('other-month');
+    } else if (i >= startDay + daysInMonth) {
+      displayDay = i - (startDay + daysInMonth) + 1;
       const nextDate = new Date(year, month + 1, displayDay);
       dateStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}-${String(displayDay).padStart(2, '0')}`;
+      cell.classList.add('other-month');
     } else {
-      // 今月
       displayDay = i - startDay + 1;
-      dayNum.textContent = displayDay;
       const thisDate = new Date(year, month, displayDay);
       dateStr = `${thisDate.getFullYear()}-${String(thisDate.getMonth() + 1).padStart(2, '0')}-${String(displayDay).padStart(2, '0')}`;
     }
-
-    cell.appendChild(dayNum); // 先に日付を追加
+    dayNum.textContent = displayDay;
+    cell.appendChild(dayNum);
 
     if (dateStr === todayStr) {
       cell.classList.add('today');
@@ -79,53 +76,53 @@ function renderCalendar(year, month) {
       }
     }
 
-    // ホバー時のグレーのオーバレイ要素を追加
     const overlay = document.createElement('div');
     overlay.className = 'date-overlay';
     cell.appendChild(overlay);
 
-    // 編集・詳細リンクを追加
     const links = document.createElement('div');
     links.className = 'date-links';
-
-    const detailLink = document.createElement('a');
-    detailLink.href = `#detail-${dateStr}`;
-    detailLink.className = 'detail-link';
-    detailLink.innerHTML = `
-      <span class="link-main">詳細</span><br>
-      <span class="link-sub">(編集)</span>
-    `;
-
-    links.appendChild(detailLink);
+    links.innerHTML = `
+      <a href="#detail-${dateStr}" class="detail-link">
+        <span class="link-main">詳細</span><br>
+        <span class="link-sub">(編集)</span>
+      </a>`;
     cell.appendChild(links);
 
-    // 日付セルクリック時のイベント処理
     cell.dataset.date = dateStr;
     cell.addEventListener('click', (e) => {
-      const clickedDate = e.currentTarget.dataset.date;
-      console.log('Clicked date:', clickedDate);
+      console.log('Clicked date:', e.currentTarget.dataset.date);
     });
 
-    calendar.appendChild(cell);
+    calendarEl.appendChild(cell);
   }
 }
 
-renderCalendar(currentYear, currentMonth);
-
-document.getElementById('prev-month').addEventListener('click', () => {
+function handlePrevMonth() {
   currentMonth -= 1;
   if (currentMonth < 0) {
     currentMonth = 11;
     currentYear -= 1;
   }
   renderCalendar(currentYear, currentMonth);
-});
+}
 
-document.getElementById('next-month').addEventListener('click', () => {
+function handleNextMonth() {
   currentMonth += 1;
   if (currentMonth > 11) {
     currentMonth = 0;
     currentYear += 1;
   }
   renderCalendar(currentYear, currentMonth);
-});
+}
+
+export function initializeCalendar() {
+  if (!calendarEl || !yearEl || !monthEl || !prevBtn || !nextBtn) {
+    console.error('カレンダーの描画に必要なDOM要素が見つかりません。');
+    return;
+  }
+  
+  renderCalendar(currentYear, currentMonth);
+  prevBtn.addEventListener('click', handlePrevMonth);
+  nextBtn.addEventListener('click', handleNextMonth);
+}

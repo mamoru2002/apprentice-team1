@@ -1,5 +1,9 @@
 import { start as startStopwatch, stop as stopStopwatch, reset as resetStopwatch, getCurrentElapsedTime } from './stopwatch.js';
-
+import { initializeCalendar } from './calendar.js';
+document.addEventListener('DOMContentLoaded', () => {
+    initializeCalendar();
+  });
+  
 const API = {
     async get(endpoint) {
         try {

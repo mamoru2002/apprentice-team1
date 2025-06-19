@@ -10,7 +10,6 @@
     <div class="app-container">
         <div class="sidebar expense-tracker-sidebar">
             <div class="expense-tracker-container">
-                <h2>金額トラッカー</h2>
                 <div class="amount-input-display">
                     <span class="currency-symbol">¥</span>
                     <input type="number" id="amountInput" placeholder="0">
@@ -36,9 +35,30 @@
                 </div>
             </div>
         </div>
+
+        <div class="calendar">
+            <div class="header">
+                <div class="year" id="current-year"></div>
+                <div class="month-nav">
+                    <button id="prev-month">〈</button>
+                    <span class="month" id="current-month"></span>
+                    <button id="next-month">〉</button>
+                </div>
+            </div>
+            <div class="days">
+                <div class="day-name sunday">SUN</div>
+                <div class="day-name">MON</div>
+                <div class="day-name">TUE</div>
+                <div class="day-name">WED</div>
+                <div class="day-name">THU</div>
+                <div class="day-name">FRI</div>
+                <div class="day-name">SAT</div>
+            </div>
+            <div class="dates" id="calendar-dates"></div>
+        </div>
+
         <div class="sidebar study-tracker-sidebar">
             <div class="tracker-container">
-                <h2>学習時間トラッカー</h2>
                 <div class="stopwatch-display">
                     <div id="timeDisplay">00:00:00.00</div>
                     <button id="playPauseButton" class="play-pause-btn">
