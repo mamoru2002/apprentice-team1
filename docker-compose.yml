@@ -9,6 +9,12 @@ services:
       - db
     env_file:
       - .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+
 
   db:
     image: mysql:8.0

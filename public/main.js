@@ -1,0 +1,206 @@
+import { start as startStopwatch, stop as stopStopwatch, reset as resetStopwatch, getCurrentElapsedTime } from './stopwatch.js';
+
+const API = {
+    async get(endpoint) {
+        try {
+            const response = await fetch(endpoint);
+            if (!response.ok) throw new Error('サーバーからの応答がありません');
+            return response.json();
+        } catch (error) {
+            console.error(`GET Error for ${endpoint}:`, error);
+            throw error;
+        }
+    },
+    async post(endpoint, body) {
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            const responseData = await response.json();
+            if (!response.ok) throw new Error(responseData.error || 'リクエストに失敗しました');
+            return responseData;
+        } catch (error) {
+            console.error(`POST Error for ${endpoint}:`, error);
+            throw error;
+        }
+    }
+};
+
+const UI = {
+    updateExpenseSummary(data) {
+        const monthlyTotal = document.getElementById('expenseMonthlyTotalAmount');
+        const grandTotal = document.getElementById('expenseGrandTotalAmount');
+        if (monthlyTotal) monthlyTotal.textContent = (data.monthly_total || 0).toLocaleString();
+        if (grandTotal) grandTotal.textContent = (data.grand_total || 0).toLocaleString();
+    },
+    updateStudySummary(data) {
+        const monthlyTotal = document.getElementById('studyMonthlyTotal');
+        const grandTotal = document.getElementById('studyGrandTotal');
+        if (monthlyTotal) monthlyTotal.textContent = (data.monthly_total || 0).toFixed(1);
+        if (grandTotal) grandTotal.textContent = (data.grand_total || 0).toFixed(1);
+    },
+    updateStopwatchDisplay(elapsed) {
+        const timeDisplay = document.getElementById('timeDisplay');
+        if (!timeDisplay) return;
+        const pad = (num, size = 2) => ('000' + num).slice(size * -1);
+        const ms = Math.floor((elapsed % 1000) / 10);
+        const secs = Math.floor((elapsed / 1000) % 60);
+        const mins = Math.floor((elapsed / (1000 * 60)) % 60);
+        const hrs = Math.floor(elapsed / (1000 * 60 * 60));
+        timeDisplay.textContent = `${pad(hrs)}:${pad(mins)}:${pad(secs)}.${pad(ms, 2)}`;
+    },
+    updatePlayPauseButton(isRunning) {
+        const button = document.getElementById('playPauseButton');
+        if (!button) return;
+        button.innerHTML = isRunning ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+    },
+    toggleStopwatchRunningClass(isRunning) {
+        const displayDiv = document.querySelector('.study-tracker-sidebar .stopwatch-display');
+        if (!displayDiv) return;
+        displayDiv.classList.toggle('running', isRunning);
+    },
+    resetAmountInput() {
+        const amountInput = document.getElementById('amountInput');
+        if (amountInput) amountInput.value = "";
+    },
+    createNewListItem(listElement, itemClass, dataAttribute, name) {
+        const newItem = document.createElement('li');
+        newItem.classList.add(itemClass);
+        newItem.dataset[dataAttribute] = name;
+        newItem.textContent = name;
+        listElement.appendChild(newItem);
+        return newItem;
+    }
+};
+
+function setupExpenseTracker() {
+    const amountInput = document.getElementById('amountInput');
+    const categoryList = document.getElementById('categoryList');
+    const addCategoryButton = document.getElementById('addCategoryButton');
+    const logExpenseButton = document.getElementById('logExpenseButton');
+    let selectedCategory = "食費";
+
+    if (categoryList) {
+        categoryList.addEventListener('click', (event) => {
+            if (event.target.matches('.category-item')) {
+                categoryList.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+                event.target.classList.add('active');
+                selectedCategory = event.target.dataset.category;
+            }
+        });
+    }
+
+    if (logExpenseButton) {
+        logExpenseButton.addEventListener('click', async () => {
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                return alert("有効な金額を入力してください。");
+            }
+            try {
+                const result = await API.post('/api/expense_logs', { title: selectedCategory, amount: amount });
+                alert(result.message);
+                UI.resetAmountInput();
+                API.get('/api/expense_summary').then(UI.updateExpenseSummary);
+            } catch (error) {
+                alert(`支出の記録中にエラーが発生しました: ${error.message}`);
+            }
+        });
+    }
+
+    if (addCategoryButton) {
+        addCategoryButton.addEventListener('click', () => {
+            const name = prompt("新しいカテゴリ名を入力してください:");
+            if (!name || !name.trim()) return;
+            const trimmedName = name.trim();
+            const existing = Array.from(categoryList.children).some(item => item.dataset.category === trimmedName);
+            if (existing) return alert("同じ名前のカテゴリが既に存在します。");
+            
+            const newItem = UI.createNewListItem(categoryList, 'category-item', 'category', trimmedName);
+            categoryList.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+            newItem.classList.add('active');
+            selectedCategory = trimmedName;
+        });
+    }
+}
+
+function setupStudyTracker() {
+    const taskList = document.getElementById('taskList');
+    const addTaskButton = document.getElementById('addTaskButton');
+    const playPauseButton = document.getElementById('playPauseButton');
+    const logTimeButton = document.getElementById('logTimeButton');
+    let selectedTask = "Ruby";
+    let isStopwatchRunning = false;
+
+    if (taskList) {
+        taskList.addEventListener('click', (event) => {
+            if (event.target.matches('.task-item')) {
+                taskList.querySelectorAll('.task-item').forEach(i => i.classList.remove('active'));
+                event.target.classList.add('active');
+                selectedTask = event.target.dataset.task;
+            }
+        });
+    }
+
+    if (addTaskButton) {
+        addTaskButton.addEventListener('click', () => {
+            const name = prompt("新しいタスク名を入力してください:");
+            if (!name || !name.trim()) return;
+            const trimmedName = name.trim();
+            const existing = Array.from(taskList.children).some(item => item.dataset.task === trimmedName);
+            if (existing) return alert("同じ名前のタスクが既に存在します。");
+
+            const newItem = UI.createNewListItem(taskList, 'task-item', 'task', trimmedName);
+            taskList.querySelectorAll('.task-item').forEach(i => i.classList.remove('active'));
+            newItem.classList.add('active');
+            selectedTask = trimmedName;
+        });
+    }
+    
+    if (playPauseButton) {
+        playPauseButton.addEventListener('click', () => {
+            isStopwatchRunning = !isStopwatchRunning;
+            isStopwatchRunning ? startStopwatch() : stopStopwatch();
+            UI.updatePlayPauseButton(isStopwatchRunning);
+            UI.toggleStopwatchRunningClass(isStopwatchRunning);
+        });
+    }
+
+    if (logTimeButton) {
+        logTimeButton.addEventListener('click', async () => {
+            const duration = getCurrentElapsedTime();
+            if (duration === 0 && !isStopwatchRunning) {
+                return alert("記録する時間がありません。ストップウォッチを開始してください。");
+            }
+            if (isStopwatchRunning) {
+                stopStopwatch();
+                isStopwatchRunning = false;
+            }
+            try {
+                const result = await API.post('/api/study_logs', { taskName: selectedTask, duration: duration });
+                alert(result.message);
+                resetStopwatch();
+                UI.updateStopwatchDisplay(0);
+                UI.updatePlayPauseButton(false);
+                UI.toggleStopwatchRunningClass(false);
+                API.get('/api/study_summary').then(UI.updateStudySummary);
+            } catch (error) {
+                alert(`学習時間の記録中にエラーが発生しました: ${error.message}`);
+            }
+        });
+    }
+    
+    document.addEventListener('timeUpdate', (event) => {
+        UI.updateStopwatchDisplay(event.detail.elapsedTime);
+    });
+}
+
+function initializeApp() {
+    setupExpenseTracker();
+    setupStudyTracker();
+    API.get('/api/expense_summary').then(UI.updateExpenseSummary);
+    API.get('/api/study_summary').then(UI.updateStudySummary);
+}
+
+document.addEventListener('DOMContentLoaded', initializeApp);

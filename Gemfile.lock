@@ -41,8 +41,8 @@ GEM
     webrick (1.9.1)
 
 PLATFORMS
-  aarch64-linux
   ruby
+  x86_64-linux
 
 DEPENDENCIES
   bigdecimal
@@ -51,6 +51,9 @@ DEPENDENCIES
   rubocop
   rubocop-performance
   webrick
+
+RUBY VERSION
+   ruby 3.4.4p34
 
 BUNDLED WITH
    2.6.9
