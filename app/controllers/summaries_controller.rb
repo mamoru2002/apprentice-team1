@@ -8,63 +8,100 @@ require "date"
 module Controllers
   class SummariesController < ApplicationController
     def do_GET(req, res)
+      set_cors_headers(res)
+
       case req.path
       when "/api/expense_summary"
         handle_expense_summary(req, res)
       when "/api/study_summary"
         handle_study_summary(req, res)
+      when "/api/daily_details"
+        handle_daily_details(req, res)
       else
         render_json(res, status: 404, body: { error: "Not Found" })
       end
-    rescue Mysql2::Error
-      render_json(res, status: 500,
-                       body: { error: "\u30C7\u30FC\u30BF\u30D9\u30FC\u30B9\u30A8\u30E9\u30FC\u304C\u767A\u751F\u3057\u307E\u3057\u305F\u3002" })
+    rescue Mysql2::Error => e
+      warn "Database error in SummariesController: #{e.message}"
+      render_json(res, status: 500, body: { error: "データベースエラーが発生しました。" })
     rescue StandardError => e
-      render_json(res, status: 500, body: { error: "予期せぬサーバーエラーが発生しました: #{e.class}" })
+      handle_server_error(res, e)
     end
+
+    private
+
+    # --- 既存の合計取得ハンドラ ---
 
     def handle_expense_summary(_req, res)
       today = Date.today
       start_of_month = Date.new(today.year, today.month, 1)
 
-      monthly_result = DB::Client.instance.query(
+      monthly_result = DB.client.query(
         "SELECT SUM(amount) AS total FROM expense_logs WHERE created_at >= ?",
         [start_of_month],
       ).first
       monthly_total = (monthly_result[:total] || 0).to_i
 
-      grand_result = DB::Client.instance.query(
-        "SELECT SUM(amount) AS total FROM expense_logs",
-        [],
-      ).first
+      grand_result = DB.client.query("SELECT SUM(amount) AS total FROM expense_logs").first
       grand_total = (grand_result[:total] || 0).to_i
 
-      render_json(res, status: 200, body: {
-                    monthly_total: monthly_total,
-                    grand_total: grand_total
-                  })
+      render_json(res, status: 200, body: { monthly_total: monthly_total, grand_total: grand_total })
     end
 
     def handle_study_summary(_req, res)
-      today          = Date.today
+      today = Date.today
       start_of_month = Date.new(today.year, today.month, 1)
 
-      monthly_result = DB::Client.instance.query(
+      monthly_result = DB.client.query(
         "SELECT SUM(duration) AS total FROM study_logs WHERE created_at >= ?",
         [start_of_month],
       ).first
-      monthly_total = (monthly_result[:total] || 0).to_i
+      monthly_total_seconds = (monthly_result[:total] || 0).to_i
 
-      grand_result = DB::Client.instance.query(
-        "SELECT SUM(duration) AS total FROM study_logs",
-        [],
-      ).first
-      grand_total = (grand_result[:total] || 0).to_i
+      grand_result = DB.client.query("SELECT SUM(duration) AS total FROM study_logs").first
+      grand_total_seconds = (grand_result[:total] || 0).to_i
 
       render_json(res, status: 200, body: {
-                    monthly_total: (monthly_total / 3600.0).round(2),
-                    grand_total: (grand_total / 3600.0).round(2)
+                    monthly_total_hours: (monthly_total_seconds / 3600.0).round(2),
+                    grand_total_hours: (grand_total_seconds / 3600.0).round(2)
                   })
+    end
+
+    # --- 新しく追加した日付詳細ハンドラ ---
+
+    def handle_daily_details(req, res)
+      date_str = req.query["date"]
+      unless valid_date?(date_str)
+        return render_json(res, status: 400, body: { error: "日付の形式が不正です。YYYY-MM-DD形式で指定してください。" })
+      end
+
+      fetch_and_render_daily_details(res, date_str)
+    end
+
+    def valid_date?(date_str)
+      return false unless date_str && date_str.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+      Date.parse(date_str)
+      true
+    rescue Date::Error
+      false
+    end
+
+    def fetch_and_render_daily_details(res, date)
+      expense_records = DB.client.query(
+        "SELECT amount, title FROM expense_logs WHERE DATE(created_at) = ?",
+        [date]
+      )
+
+      study_records = DB.client.query(
+        "SELECT duration, title FROM study_logs WHERE DATE(created_at) = ?",
+        [date]
+      )
+
+      response_body = {
+        expenses: expense_records.map { |row| { amount: row[:amount], category: row[:title] } },
+        studies: study_records.map { |row| { duration_seconds: row[:duration], category: row[:title] } }
+      }
+
+      render_json(res, status: 200, body: response_body)
     end
   end
 end

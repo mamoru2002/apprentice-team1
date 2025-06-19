@@ -21,7 +21,7 @@ module Controllers
     end
 
     def do_GET(_req, res)
-      results = DB::Client.instance.query(
+      results = DB.client.query(
         "SELECT id, title, amount, created_at FROM expense_logs ORDER BY created_at DESC",
       )
       logs = results.map do |row|
@@ -51,7 +51,7 @@ module Controllers
     end
 
     def save_expense_log(res, title, amount)
-      DB::Client.instance.query(
+      DB.client.query(
         "INSERT INTO expense_logs (title, amount, created_at) VALUES (?, ?, NOW())",
         [title, amount],
       )
