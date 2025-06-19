@@ -11,6 +11,7 @@ module Config
     '/api/study_logs' => Controllers::StudyLogsController,
     '/api/expense_logs' => Controllers::ExpenseLogsController,
     '/api/expense_summary' => Controllers::SummariesController,
-    '/api/study_summary' => Controllers::SummariesController
+    '/api/study_summary' => Controllers::SummariesController,
+    '/api/daily_details'   => Controllers::SummariesController
   }.freeze
 end

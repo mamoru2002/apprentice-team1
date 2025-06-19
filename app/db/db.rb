@@ -1,42 +1,52 @@
 # frozen_string_literal: true
 
 require "mysql2"
-require "singleton"
 
 module DB
+
   class Client
-    include Singleton
     def initialize
-      @client = Mysql2::Client.new(
+      # 接続情報を@optionsに保存
+      @options = {
         host: ENV.fetch("DB_HOST", "db"),
         username: ENV.fetch("DB_USER", "user"),
         password: ENV.fetch("DB_PASSWORD", "password"),
         database: ENV.fetch("DB_NAME", "app"),
         encoding: "utf8mb4",
-        symbolize_keys: true,
-      )
+        symbolize_keys: true
+      }
+      @client = nil # この時点では接続しない
     end
 
     def query(sql, params = [])
+      # メソッドが呼ばれるたびに接続し、使い終わったら切断する
+      connect
       statement = @client.prepare(sql)
       result = statement.execute(*params)
-
-      # INSERT や UPDATE など、結果セットを返さないクエリの場合、
-      # result は nil になるため、先にチェックして空の配列を返す。
-      return [] if result.nil?
-
-      # 結果セットを Ruby の配列に変換する。
-      # これにより、すべての結果がRuby側に読み込まれ、DB接続が解放される。
-      # これが「Commands out of sync」エラーへの決定的な解決策。
-      result.to_a
+      # 結果を配列として即座にメモリに読み込むことで、
+      # 「Commands out of sync」エラーを防ぐ
+      result&.to_a
     rescue Mysql2::Error => e
-      # (エラーログ出力部分は変更なし)
       warn "--- MySQL Error ---"
       warn "Message: #{e.message}"
       warn "SQL: #{sql}"
       warn "Params: #{params.inspect}"
       warn "---------------------"
-      raise
+      raise # エラーを再度発生させ、呼び出し元で処理する
+    ensure
+      # 処理が成功してもエラーが発生しても、必ず接続を閉じる
+      @client&.close
     end
+
+    private
+
+    def connect
+      @client = Mysql2::Client.new(@options)
+    end
+  end
+
+  # アプリケーション全体でこのメソッドを使ってDBクライアントを取得する
+  def self.client
+    Client.new
   end
 end

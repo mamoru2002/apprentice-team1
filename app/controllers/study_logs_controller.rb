@@ -21,7 +21,7 @@ module Controllers
     end
 
     def do_GET(_req, res)
-      results = DB::Client.instance.query(
+      results = DB.client.query(
         "SELECT id, title, duration, created_at
              FROM study_logs
          ORDER BY created_at DESC",
@@ -56,7 +56,7 @@ module Controllers
 
     def save_study_log(res, title, duration_ms)
       duration_seconds = (duration_ms / 1000.0).round
-      DB::Client.instance.query(
+      DB.client.query(
         "INSERT INTO study_logs (title, duration, created_at) VALUES (?, ?, NOW())",
         [title, duration_seconds],
       )
