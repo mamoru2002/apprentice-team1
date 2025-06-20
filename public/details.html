@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時と金なり - 詳細画面</title>
+    <link rel="stylesheet" href="./details.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="details-page">
+    <!-- ヘッダー -->
+    <header class="header">
+    <div class="date-display">
+        <div class="month-nav">
+            <button id="prevDay">〈</button>
+        </div>
+        <div class="date-info">
+            <span class="year" id="yearDisplay">2025</span>
+            <span class="date" id="dateDisplay">6/24</span>
+        </div>
+        <div class="month-nav">
+            <button id="nextDay">〉</button>
+        </div>
+    </div>
+    </header>
+
+    <div class="app-container details">
+        <!-- カテゴリー候補 -->
+        <div class="sidebar expense-tracker-sidebar">
+            <div class="expense-tracker-container">
+                <div class="amount-input-display">
+                    <span class="currency-symbol">¥</span>
+                    <input type="number" id="amountInput" value="550">
+                </div>
+    
+                <div class="category-selection">
+                    <ul id="categoryList" class="category-list">
+                        <li class="category-item active" data-category="食費">食費</li>
+                        <li class="category-item" data-category="交通">交通</li>
+                        <li class="category-item" data-category="日用品">日用品</li>
+                        <li class="category-item" data-category="美容">美容</li>
+                        <li class="category-item" data-category="雑費">雑費</li>
+                    </ul>
+                </div>
+    
+                <button id="addCategoryButton" class="add-category-btn">+</button>
+                <button id="logExpenseButton" class="log-btn expense-log-btn">金額を登録</button>
+            </div>
+        </div>
+
+        <!-- 支出内訳 -->
+        <div class="sidebar expense-list-sidebar">
+            <div class="expense-list-container">
+                <div class="total-amount-display">
+                    <span class="currency-symbol">¥</span>
+                    <span class="total-amount" id="expenseTotalAmount">0</span>
+                </div>
+                
+                <div class="expense-items-list" id="expenseItemsList">
+                    <!-- 日付ごとのデータが動的に読み込まれます -->
+                </div>
+                
+                <button class="add-category-btn" id="addExpenseItemButton">+</button>
+            </div>
+        </div>
+
+        <!-- 学習内訳 -->
+        <div class="sidebar study-list-sidebar">
+            <div class="study-list-container">
+                <div class="total-time-display" id="studyTotalTime">00:00:00</div>
+                
+                <div class="study-items-list" id="studyItemsList">
+                    <!-- 日付ごとのデータが動的に読み込まれます -->
+                </div>
+                
+                <button class="add-task-btn" id="addStudyItemButton">+</button>
+            </div>
+        </div>
+
+        <!-- 学習時間入力 -->
+        <div class="sidebar study-tracker-sidebar">
+            <div class="tracker-container">
+                <div class="time-input-display">
+                    <input type="text" id="timeInput" placeholder="000000" maxlength="6" class="time-field">
+                    <div class="time-format-hint">HHMMSS</div>
+                </div>
+
+                <div class="category-selection">
+                    <ul id="taskList" class="task-list">
+                        <li class="task-item active" data-task="Ruby">Ruby</li>
+                        <li class="task-item" data-task="CSS">CSS</li>
+                        <li class="task-item" data-task="JavaScript">JavaScript</li>
+                        <li class="task-item" data-task="HTML">HTML</li>
+                        <li class="task-item" data-task="Paiza">Paiza</li>
+                    </ul>
+                </div>
+
+                <button id="addTaskButton" class="add-task-btn">+</button>
+                <button id="logTimeButton" class="log-btn">学習時間を登録</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <footer class="footer">
+        <button class="back-btn">カレンダーへ戻る →</button>
+    </footer>
+
+    <script src="./details.js"></script>
+</body>
+</html>
