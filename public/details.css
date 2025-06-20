@@ -142,16 +142,18 @@ body.details-page .sidebar.study-list-sidebar {
     margin-bottom: 8px;
     border-radius: 10px;
     cursor: pointer;
-    background-color: #f8f9fa;
-    transition: all 0.2s ease;
+}
+
+.expense-item{
+    background-color: #fafad2;
+}
+
+.study-item {
+    background-color:  #e8f0fA;
 }
 
 .expense-item:last-child, .study-item:last-child {
     margin-bottom: 0;
-}
-
-.study-item:hover {
-    background-color: #e9ecef;
 }
 
 .expense-item.selected {
