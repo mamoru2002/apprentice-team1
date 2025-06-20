@@ -17,13 +17,23 @@ class ApplicationController < WEBrick::HTTPServlet::AbstractServlet
     res.status = 200
   end
 
+  def do_PATCH(req, res)
+    set_cors_headers(res)
+    render_json(res, status: 404, body: { error: 'Not Found'})
+  end
+
+  def do_DELETE(req, res)
+    set_cors_headers(res)
+    render_json(res, status: 404, body: { error: 'Not Found'})
+  end
+
 
 
   private
 
   def set_cors_headers(res)
     res['Access-Control-Allow-Origin'] = '*'
-    res['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    res['Access-Control-Allow-Methods'] = 'GET, POST, PATCH, DELETE, OPTIONS'
     res['Access-Control-Allow-Headers'] = 'Content-Type'
   end
 

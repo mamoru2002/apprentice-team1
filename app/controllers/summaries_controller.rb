@@ -31,13 +31,16 @@ module Controllers
 
     # --- 既存の合計取得ハンドラ ---
 
-    def handle_expense_summary(_req, res)
-      today = Date.today
-      start_of_month = Date.new(today.year, today.month, 1)
+    def handle_expense_summary(req, res)
+      month_str = req.query['month'] || Date.today.strftime('%Y-%m')
+      target_month = Date.parse("#{month_str}-01")
+
+      start_of_month = Date.new(target_month.year, target_month.month, 1)
+      end_of_month = start_of_month.next_month.prev_day
 
       monthly_result = DB.client.query(
-        "SELECT SUM(amount) AS total FROM expense_logs WHERE created_at >= ?",
-        [start_of_month],
+        "SELECT SUM(amount) AS total FROM expense_logs WHERE date BETWEEN ? AND ?",
+        [start_of_month, end_of_month],
       ).first
       monthly_total = (monthly_result[:total] || 0).to_i
 
@@ -47,13 +50,16 @@ module Controllers
       render_json(res, status: 200, body: { monthly_total: monthly_total, grand_total: grand_total })
     end
 
-    def handle_study_summary(_req, res)
-      today = Date.today
-      start_of_month = Date.new(today.year, today.month, 1)
+    def handle_study_summary(req, res)
+      month_str = req.query['month'] || Date.today.strftime('%Y-%m')
+      target_month = Date.parse("#{month_str}-01")
+
+      start_of_month = Date.new(target_month.year, target_month.month, 1)
+      end_of_month = start_of_month.next_month.prev_day
 
       monthly_result = DB.client.query(
-        "SELECT SUM(duration) AS total FROM study_logs WHERE created_at >= ?",
-        [start_of_month],
+        "SELECT SUM(duration) AS total FROM study_logs WHERE date BETWEEN ? AND ?",
+        [start_of_month, end_of_month],
       ).first
       monthly_total_seconds = (monthly_result[:total] || 0).to_i
 
@@ -87,12 +93,12 @@ module Controllers
 
     def fetch_and_render_daily_details(res, date)
       expense_records = DB.client.query(
-        "SELECT amount, title FROM expense_logs WHERE DATE(created_at) = ?",
+        "SELECT amount, title FROM expense_logs WHERE date = ?",
         [date]
       )
 
       study_records = DB.client.query(
-        "SELECT duration, title FROM study_logs WHERE DATE(created_at) = ?",
+        "SELECT duration, title FROM study_logs WHERE date = ?",
         [date]
       )
 

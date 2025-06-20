@@ -42,8 +42,8 @@ const UI = {
     updateStudySummary(data) {
         const monthlyTotal = document.getElementById('studyMonthlyTotal');
         const grandTotal = document.getElementById('studyGrandTotal');
-        if (monthlyTotal) monthlyTotal.textContent = (data.monthly_total || 0).toFixed(1);
-        if (grandTotal) grandTotal.textContent = (data.grand_total || 0).toFixed(1);
+        if (monthlyTotal) monthlyTotal.textContent = (data.monthly_total_hours || 0).toFixed(1);
+        if (grandTotal) grandTotal.textContent = (data.grand_total_hours || 0).toFixed(1);
     },
     updateStopwatchDisplay(elapsed) {
         const timeDisplay = document.getElementById('timeDisplay');
@@ -182,7 +182,7 @@ function setupStudyTracker() {
                 isStopwatchRunning = false;
             }
             try {
-                const result = await API.post('/api/study_logs', { taskName: selectedTask, duration: duration });
+                const result = await API.post('/api/study_logs', { title: selectedTask, duration: duration });
                 alert(result.message);
                 resetStopwatch();
                 UI.updateStopwatchDisplay(0);

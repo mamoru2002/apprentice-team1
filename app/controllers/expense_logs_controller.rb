@@ -52,7 +52,7 @@ module Controllers
 
     def save_expense_log(res, title, amount)
       DB.client.query(
-        "INSERT INTO expense_logs (title, amount, created_at) VALUES (?, ?, NOW())",
+        "INSERT INTO expense_logs (title, amount, date, created_at) VALUES (?, ?, CURDATE(), NOW())",
         [title, amount],
       )
       render_json(res, status: 201, body: { message: "#{title} を #{amount}円で記録しました。" })
@@ -60,5 +60,65 @@ module Controllers
       warn "MySQL ERROR: #{e.message}"
       render_json(res, status: 500, body: { error: "データベースエラーが発生しました。" })
     end
+
+    def do_PATCH(req, res)
+      id = req.path.split('/').last
+      payload = parse_json_body(req)
+      errors = validate_patch_params(payload)
+      unless errors.empty?
+        return render_json(res, status: 400, body: { error: "無効なパラメータです。", details: errors })
+      end
+      update_expense_log(res, id, payload)
+    rescue StandardError => e
+      handle_server_error(res, e)
+    end
+
+    def do_DELETE(req, res)
+      id = req.path.split('/').last
+      delete_expense_log(res, id)
+    rescue StandardError => e
+      handle_server_error(res, e)
+    end
+
+    private
+
+    def validate_patch_params(payload)
+      errors = []
+      errors << "title は必須です。" if payload[:title].to_s.empty?
+      errors << "amount は必須で、0以上の整数である必要があります。" unless payload[:amount].is_a?(Integer) && payload[:amount] >= 0
+      errors << "date は必須で、YYYY-MM-DD形式である必要があります。" unless valid_date?(payload[:date])
+      errors
+    end
+    
+    def valid_date?(date_str)
+        return false unless date_str && date_str.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+        Date.parse(date_str)
+        true
+    rescue Date::Error
+        false
+    end
+    
+    def update_expense_log(res, id, payload)
+      statement = DB.client.prepare('UPDATE expense_logs SET title = ?, amount = ?, date = ? WHERE id = ?')
+      statement.execute(payload[:title], payload[:amount], payload[:date], id)
+
+      if DB.client.affected_rows > 0
+        render_json(res, status: 200, body: { message: "ID:#{id}の支出記録を更新しました" })
+      else
+        render_json(res, status: 404, body: { error: "ID:#{id}の支出記録が見つかりません" })
+      end
+    end
+
+    def delete_expense_log(res, id)
+      statement = DB.client.prepare('DELETE FROM expense_logs WHERE id = ?')
+      statement.execute(id)
+      if DB.client.affected_rows > 0
+        res.status = 204
+      else
+        render_json(res, status: 404, body: { error: "ID:#{id}の支出記録が見つかりません" })
+      end
+    end
+
+
   end
 end
