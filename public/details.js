@@ -458,25 +458,25 @@ handleClick(event) {
         }
     }
     
-  resetExpenseState() {
-    this.state.editingExpenseIndex = null;
-    this.state.isNewExpenseMode = false;
-    Dom.updateValue('#amountInput', '');
+    resetExpenseState() {
+        this.state.editingExpenseIndex = null;
+        this.state.isNewExpenseMode = false;
+        Dom.updateValue('#amountInput', '');
+        
+        // 登録後も新規登録モードに戻す
+        this.startNewExpenseMode();
+        Dom.$('#addExpenseItemButton')?.classList.add('selected');
+    }
     
-    // 登録後も新規登録モードに戻す
-    this.startNewExpenseMode();
-    Dom.$('#addExpenseItemButton')?.classList.add('selected');
-  }
-    
-  resetExpenseState() {
-    this.state.editingExpenseIndex = null;
-    this.state.isNewExpenseMode = false;
-    Dom.updateValue('#amountInput', '');
-    
-    // 登録後も新規登録モードに戻す
-    this.startNewExpenseMode();
-    Dom.$('#addExpenseItemButton')?.classList.add('selected');
-  }
+    resetStudyState() {
+        this.state.editingStudyIndex = null;
+        this.state.isNewStudyMode = false;
+        Dom.updateValue('#timeInput', '');
+        
+        // 登録後も新規登録モードに戻す
+        this.startNewStudyMode();
+        Dom.$('#addStudyItemButton')?.classList.add('selected');
+    }
 }
 
 // アプリケーション初期化
