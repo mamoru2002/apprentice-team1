@@ -75,7 +75,6 @@ body.details-page .sidebar.study-list-sidebar {
 .expense-list-container, .study-list-container {
     border-radius: 20px;
     padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -83,13 +82,12 @@ body.details-page .sidebar.study-list-sidebar {
     gap: 15px;
     box-sizing: border-box;
     flex-grow: 1;
-    background-color: #f8f9fa;
 }
 
 /* 合計表示 */
 .total-amount-display {
     background-color: #ffffff;
-    border: 1px solid #e9ecef;
+    border: 3px solid #d3d3d3;
     border-radius: 15px;
     padding: 15px 20px;
     display: flex;
@@ -109,7 +107,7 @@ body.details-page .sidebar.study-list-sidebar {
 
 .total-time-display {
     background-color: #ffffff;
-    border: 1px solid #e9ecef;
+    border: 3px solid #d3d3d3;
     border-radius: 15px;
     padding: 15px 20px;
     display: flex;
@@ -127,7 +125,7 @@ body.details-page .sidebar.study-list-sidebar {
 /* アイテムリスト */
 .expense-items-list, .study-items-list {
     background-color: #fff;
-    border: 1px solid #e9ecef;
+    border: 3px solid #d3d3d3;
     border-radius: 15px;
     padding: 10px;
     width: 100%;
@@ -231,25 +229,6 @@ body.details-page .sidebar.study-list-sidebar {
 .add-category-btn.selected,
 .add-task-btn.selected {
     border: 3px solid #555;
-}
-
-/* 新しいスクロールバー */
-.expense-items-list::-webkit-scrollbar, .study-items-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.expense-items-list::-webkit-scrollbar-track, .study-items-list::-webkit-scrollbar-track {
-    background: transparent;
-    margin: 5px 0;
-}
-
-.expense-items-list::-webkit-scrollbar-thumb, .study-items-list::-webkit-scrollbar-thumb {
-    background-color: #b8cce0;
-    border-radius: 10px;
-}
-
-.expense-items-list, .study-items-list { 
-    scrollbar-color: #b8cce0 transparent; 
 }
 
 /* フッター */
