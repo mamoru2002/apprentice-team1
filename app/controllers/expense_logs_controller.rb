@@ -3,6 +3,7 @@
 require_relative "application_controller"
 require_relative "../db/db"
 require "json"
+require "date"
 
 module Controllers
   class ExpenseLogsController < ApplicationController
@@ -19,9 +20,9 @@ module Controllers
     rescue StandardError => e
       handle_server_error(res, e)
     end
-
+    
     def do_GET(_req, res)
-      results = DB.client.query(
+      results = DB.client.select(
         "SELECT id, title, amount, created_at FROM expense_logs ORDER BY created_at DESC",
       )
       logs = results.map do |row|
@@ -51,7 +52,7 @@ module Controllers
     end
 
     def save_expense_log(res, title, amount)
-      DB.client.query(
+      DB.client.execute(
         "INSERT INTO expense_logs (title, amount, date, created_at) VALUES (?, ?, CURDATE(), NOW())",
         [title, amount],
       )
@@ -99,10 +100,12 @@ module Controllers
     end
     
     def update_expense_log(res, id, payload)
-      statement = DB.client.prepare('UPDATE expense_logs SET title = ?, amount = ?, date = ? WHERE id = ?')
-      statement.execute(payload[:title], payload[:amount], payload[:date], id)
+      result = DB.client.execute(
+        'UPDATE expense_logs SET title = ?, amount = ?, date = ? WHERE id = ?',
+        [payload[:title], payload[:amount], payload[:date], id]
+      )
 
-      if DB.client.affected_rows > 0
+      if result > 0
         render_json(res, status: 200, body: { message: "ID:#{id}の支出記録を更新しました" })
       else
         render_json(res, status: 404, body: { error: "ID:#{id}の支出記録が見つかりません" })
@@ -110,15 +113,13 @@ module Controllers
     end
 
     def delete_expense_log(res, id)
-      statement = DB.client.prepare('DELETE FROM expense_logs WHERE id = ?')
-      statement.execute(id)
-      if DB.client.affected_rows > 0
+      result = DB.client.execute('DELETE FROM expense_logs WHERE id = ?', [id])
+      
+      if result > 0
         res.status = 204
       else
         render_json(res, status: 404, body: { error: "ID:#{id}の支出記録が見つかりません" })
       end
     end
-
-
   end
 end

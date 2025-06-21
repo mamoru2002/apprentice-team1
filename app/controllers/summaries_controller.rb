@@ -29,8 +29,6 @@ module Controllers
 
     private
 
-    # --- 既存の合計取得ハンドラ ---
-
     def handle_expense_summary(req, res)
       month_str = req.query['month'] || Date.today.strftime('%Y-%m')
       target_month = Date.parse("#{month_str}-01")
@@ -38,13 +36,14 @@ module Controllers
       start_of_month = Date.new(target_month.year, target_month.month, 1)
       end_of_month = start_of_month.next_month.prev_day
 
-      monthly_result = DB.client.query(
+
+      monthly_result = DB.client.select(
         "SELECT SUM(amount) AS total FROM expense_logs WHERE date BETWEEN ? AND ?",
         [start_of_month, end_of_month],
       ).first
       monthly_total = (monthly_result[:total] || 0).to_i
 
-      grand_result = DB.client.query("SELECT SUM(amount) AS total FROM expense_logs").first
+      grand_result = DB.client.select("SELECT SUM(amount) AS total FROM expense_logs").first
       grand_total = (grand_result[:total] || 0).to_i
 
       render_json(res, status: 200, body: { monthly_total: monthly_total, grand_total: grand_total })
@@ -57,13 +56,15 @@ module Controllers
       start_of_month = Date.new(target_month.year, target_month.month, 1)
       end_of_month = start_of_month.next_month.prev_day
 
-      monthly_result = DB.client.query(
+
+      monthly_result = DB.client.select(
         "SELECT SUM(duration) AS total FROM study_logs WHERE date BETWEEN ? AND ?",
         [start_of_month, end_of_month],
       ).first
       monthly_total_seconds = (monthly_result[:total] || 0).to_i
 
-      grand_result = DB.client.query("SELECT SUM(duration) AS total FROM study_logs").first
+
+      grand_result = DB.client.select("SELECT SUM(duration) AS total FROM study_logs").first
       grand_total_seconds = (grand_result[:total] || 0).to_i
 
       render_json(res, status: 200, body: {
@@ -71,8 +72,6 @@ module Controllers
                     grand_total_hours: (grand_total_seconds / 3600.0).round(2)
                   })
     end
-
-    # --- 新しく追加した日付詳細ハンドラ ---
 
     def handle_daily_details(req, res)
       date_str = req.query["date"]
@@ -92,19 +91,20 @@ module Controllers
     end
 
     def fetch_and_render_daily_details(res, date)
-      expense_records = DB.client.query(
-        "SELECT amount, title FROM expense_logs WHERE date = ?",
+
+      expense_records = DB.client.select(
+        "SELECT id, amount, title FROM expense_logs WHERE date = ?",
         [date]
       )
 
-      study_records = DB.client.query(
-        "SELECT duration, title FROM study_logs WHERE date = ?",
+      study_records = DB.client.select(
+        "SELECT id, duration, title FROM study_logs WHERE date = ?",
         [date]
       )
 
       response_body = {
-        expenses: expense_records.map { |row| { amount: row[:amount], category: row[:title] } },
-        studies: study_records.map { |row| { duration_seconds: row[:duration], category: row[:title] } }
+        expenses: expense_records.map { |row| { id: row[:id], amount: row[:amount], category: row[:title] } },
+        studies: study_records.map { |row| { id: row[:id], duration_seconds: row[:duration], category: row[:title] } }
       }
 
       render_json(res, status: 200, body: response_body)

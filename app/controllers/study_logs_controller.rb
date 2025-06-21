@@ -3,6 +3,7 @@
 require_relative "application_controller"
 require_relative "../db/db"
 require "json"
+require "date"
 
 module Controllers
   class StudyLogsController < ApplicationController
@@ -12,7 +13,7 @@ module Controllers
 
       unless errors.empty?
         return render_json(res, status: 400,
-                                body: { error: "\u7121\u52B9\u306A\u30D1\u30E9\u30E1\u30FC\u30BF\u3067\u3059\u3002", details: errors })
+                                body: { error: "無効なパラメータです。", details: errors })
       end
 
       save_study_log(res, payload[:title], payload[:duration])
@@ -21,7 +22,7 @@ module Controllers
     end
 
     def do_GET(_req, res)
-      results = DB.client.query(
+      results = DB.client.select(
         "SELECT id, title, duration, created_at
              FROM study_logs
          ORDER BY created_at DESC",
@@ -46,17 +47,17 @@ module Controllers
     def validate_params(payload)
       errors = []
       if payload[:title].to_s.empty?
-        errors << "title \u306F\u5FC5\u9808\u3067\u3001\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002"
+        errors << "title は必須で、文字列である必要があります。"
       end
       unless payload[:duration].is_a?(Integer) && payload[:duration] >= 0
-        errors << "duration \u306F\u5FC5\u9808\u3067\u30010\u4EE5\u4E0A\u306E\u6574\u6570\uFF08\u30DF\u30EA\u79D2\uFF09\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002"
+        errors << "duration は必須で、0以上の整数（ミリ秒）である必要があります。"
       end
       errors
     end
 
     def save_study_log(res, title, duration_ms)
       duration_seconds = (duration_ms / 1000.0).round
-      DB.client.query(
+      DB.client.execute(
         "INSERT INTO study_logs (title, duration, date, created_at) VALUES (?, ?, CURDATE(), NOW())",
         [title, duration_seconds],
       )
@@ -65,7 +66,7 @@ module Controllers
     end
 
     def format_duration(ms)
-      return "0\u79D2" unless ms.positive?
+      return "0秒" unless ms.positive?
 
       total_secs = ms / 1000
       hrs = total_secs / 3600
@@ -79,7 +80,7 @@ module Controllers
       ].compact
 
       result = parts.join
-      result.empty? ? "0\u79D2" : result
+      result.empty? ? "0秒" : result
     end
 
     def do_PATCH(req, res)
@@ -120,10 +121,12 @@ module Controllers
     end
 
     def update_study_log(res, id, payload)
-      statement = DB.client.prepare('UPDATE study_logs SET title = ?, duration = ?, date = ? WHERE id = ?')
-      statement.execute(payload[:title], payload[:duration], payload[:date], id)
+      result = DB.client.execute(
+        'UPDATE study_logs SET title = ?, duration = ?, date = ? WHERE id = ?',
+        [payload[:title], payload[:duration], payload[:date], id]
+      )
 
-      if DB.client.affected_rows > 0
+      if result > 0
         render_json(res, status: 200, body: { message: "ID:#{id}の学習記録を更新しました" })
       else
         render_json(res, status: 404, body: { error: "ID:#{id}の学習記録が見つかりません" })
@@ -131,14 +134,13 @@ module Controllers
     end
 
     def delete_study_log(res, id)
-      statement = DB.client.prepare('DELETE FROM study_logs WHERE id = ?')
-      statement.execute(id)
-      if DB.client.affected_rows > 0
+      result = DB.client.execute('DELETE FROM study_logs WHERE id = ?', [id])
+      
+      if result > 0
         res.status = 204
       else
         render_json(res, status: 404, body: { error: "ID:#{id}の学習記録が見つかりません" })
       end
     end
-      
   end
 end
