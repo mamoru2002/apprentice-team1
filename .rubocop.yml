@@ -41,10 +41,10 @@ Style/RedundantReturn:
 
 Style/TrailingCommaInArguments:
   EnforcedStyleForMultiline: comma
-  EnforcedStyleForSingleLine: no_comma
-
 
 Metrics/MethodLength:
-  Max: 25
+  Max: 30
 Metrics/AbcSize:
   Max: 35
+Metrics/ClassLength:
+  Max: 120

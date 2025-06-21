@@ -17,26 +17,25 @@ module Controllers
       end
 
       save_expense_log(res,
-                      payload[:title],
-                      payload[:amount],
-                      payload[:date])
+                       payload[:title],
+                       payload[:amount],
+                       payload[:date])
     rescue StandardError => e
       handle_server_error(res, e)
     end
-
 
     def do_GET(_req, res)
       results = DB.client.select(
         "SELECT id, title, amount, date, created_at
            FROM expense_logs
-       ORDER BY created_at DESC"
+       ORDER BY created_at DESC",
       )
       logs = results.map do |row|
         {
-          id:         row[:id],
-          title:      row[:title],
-          amount:     row[:amount],
-          date:       row[:date].strftime("%Y-%m-%d"),
+          id: row[:id],
+          title: row[:title],
+          amount: row[:amount],
+          date: row[:date].strftime("%Y-%m-%d"),
           created_at: row[:created_at].strftime("%Y-%m-%dT%H:%M:%SZ")
         }
       end
@@ -57,7 +56,7 @@ module Controllers
 
       unless errors.empty?
         return render_json(res, status: 400,
-                                 body: { error: "無効なパラメータです。", details: errors })
+                                body: { error: "無効なパラメータです。", details: errors })
       end
 
       update_expense_log(res, id, payload)
@@ -79,9 +78,7 @@ module Controllers
     def validate_params(payload)
       errs = []
       errs << "title は必須で、文字列である必要があります。" if payload[:title].to_s.strip.empty?
-      unless payload[:amount].is_a?(Integer) && payload[:amount] >= 0
-        errs << "amount は必須で、0以上の整数である必要があります。"
-      end
+      errs << "amount は必須で、0以上の整数である必要があります。" unless payload[:amount].is_a?(Integer) && payload[:amount] >= 0
       errs
     end
 
@@ -96,6 +93,7 @@ module Controllers
 
     def valid_date?(date_str)
       return false unless date_str&.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+
       Date.parse(date_str)
       true
     rescue Date::Error
@@ -103,13 +101,13 @@ module Controllers
     end
 
     def save_expense_log(res, title, amount, date_str = nil)
-      jst_time = Time.now.getlocal('+09:00')
-      if date_str.to_s.strip.empty?
-        date_jst = jst_time.strftime('%Y-%m-%d')
-      else
-        date_jst = date_str
-      end
-      created_at = jst_time.strftime('%Y-%m-%d %H:%M:%S')
+      jst_time = Time.now.getlocal("+09:00")
+      date_jst = if date_str.to_s.strip.empty?
+                   jst_time.strftime("%Y-%m-%d")
+                 else
+                   date_str
+                 end
+      created_at = jst_time.strftime("%Y-%m-%d %H:%M:%S")
 
       sql = <<~SQL
         INSERT INTO expense_logs (title, amount, date, created_at)
@@ -130,10 +128,10 @@ module Controllers
         "UPDATE expense_logs
             SET title = ?, amount = ?, date = ?
           WHERE id = ?",
-        [payload[:title], payload[:amount], payload[:date], id]
+        [payload[:title], payload[:amount], payload[:date], id],
       )
 
-      if result > 0
+      if result.positive?
         render_json(res, status: 200, body: { message: "ID:#{id}の支出記録を更新しました" })
       else
         render_json(res, status: 404, body: { error: "ID:#{id}の支出記録が見つかりません" })
@@ -143,7 +141,7 @@ module Controllers
     # DELETE 用メソッド
     def delete_expense_log(res, id)
       result = DB.client.execute("DELETE FROM expense_logs WHERE id = ?", [id])
-      if result > 0
+      if result.positive?
         res.status = 204
       else
         render_json(res, status: 404, body: { error: "ID:#{id}の支出記録が見つかりません" })

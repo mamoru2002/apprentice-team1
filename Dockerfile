@@ -5,7 +5,7 @@ WORKDIR /app
 RUN apt-get update -qq && \
     apt-get install -y nodejs npm default-mysql-client
 
-COPY Gemfile ./
+COPY Gemfile Gemfile.lock ./
 RUN gem install bundler && bundle install
 
 COPY package.json ./

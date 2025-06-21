@@ -8,7 +8,7 @@ require "date"
 module Controllers
   class CalendarController < ApplicationController
     def do_GET(_req, res)
-      set_cors_headers(res)
+      apply_cors_headers(res)
       fetch_calendar_data(res)
     rescue Mysql2::Error => e
       warn "DB error in CalendarController: #{e.message}"

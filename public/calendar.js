@@ -9,27 +9,6 @@ const monthEl = document.getElementById('current-month');
 const prevBtn = document.getElementById('prev-month');
 const nextBtn = document.getElementById('next-month');
 
-async function loadCalendarData() {
-  try {
-    const res = await fetch('/api/calendar_data');
-    const data = await res.json();
-
-    calendarData = data.map(entry => ({
-      date: entry.date,
-      expense: entry.total_expense > 0
-        ? new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(entry.total_expense)
-        : null,
-      hours: entry.total_hours > 0
-        ? `${entry.total_hours}h`
-        : null
-    }));
-
-    renderCalendar(currentYear, currentMonth);
-  } catch (error) {
-    console.error('カレンダーデータの取得に失敗しました:', error);
-  }
-}
-
 function renderCalendar(year, month) {
   calendarEl.innerHTML = '';
 
@@ -77,7 +56,7 @@ function renderCalendar(year, month) {
       cell.classList.add('today');
     }
 
-    const dayData = calendarData.find(entry => entry.date === dateStr);
+    const dayData = calendarData.find((entry) => entry.date === dateStr);
     if (dayData) {
       if (dayData.expense) {
         const expense = document.createElement('span');
@@ -100,22 +79,42 @@ function renderCalendar(year, month) {
     const links = document.createElement('div');
     links.className = 'date-links';
     links.innerHTML = `
-      <a href="#" class="detail-link" data-date="${dateStr}">
-        <span class="link-main">詳細</span><br>
-        <span class="link-sub">(編集)</span>
-      </a>`;
+        <a href="#" class="detail-link" data-date="${dateStr}">
+          <span class="link-main">詳細</span><br>
+          <span class="link-sub">(編集)</span>
+        </a>`;
     cell.appendChild(links);
 
     const linkEl = links.querySelector('.detail-link');
-    linkEl.addEventListener('click', e => {
+    linkEl.addEventListener('click', (e) => {
       e.preventDefault();
-      const date = e.currentTarget.dataset.date;
+      const { date } = e.currentTarget.dataset;
       window.location.href = `details.html?date=${date}`;
     });
 
     cell.dataset.date = dateStr;
 
     calendarEl.appendChild(cell);
+  }
+}
+async function loadCalendarData() {
+  try {
+    const res = await fetch('/api/calendar_data');
+    const data = await res.json();
+
+    calendarData = data.map((entry) => ({
+      date: entry.date,
+      expense: entry.total_expense > 0
+        ? new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(entry.total_expense)
+        : null,
+      hours: entry.total_hours > 0
+        ? `${entry.total_hours}h`
+        : null,
+    }));
+
+    renderCalendar(currentYear, currentMonth);
+  } catch (error) {
+    console.error('カレンダーデータの取得に失敗しました:', error);
   }
 }
 
