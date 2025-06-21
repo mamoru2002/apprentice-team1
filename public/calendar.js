@@ -107,9 +107,6 @@ function renderCalendar(year, month) {
     cell.appendChild(links);
 
     cell.dataset.date = dateStr;
-    cell.addEventListener('click', (e) => {
-      console.log('Clicked date:', e.currentTarget.dataset.date);
-    });
 
     calendarEl.appendChild(cell);
   }
