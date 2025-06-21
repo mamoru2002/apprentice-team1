@@ -14,13 +14,13 @@ module Controllers
 
       unless errors.empty?
         return render_json(res, status: 400,
-                                 body: { error: "無効なパラメータです。", details: errors })
+                                body: { error: "無効なパラメータです。", details: errors })
       end
 
       save_study_log(res,
-                payload[:title],
-                payload[:duration],
-                payload[:date])
+                     payload[:title],
+                     payload[:duration],
+                     payload[:date])
     rescue StandardError => e
       handle_server_error(res, e)
     end
@@ -30,15 +30,15 @@ module Controllers
       results = DB.client.select(
         "SELECT id, title, duration, date, created_at
              FROM study_logs
-         ORDER BY created_at DESC"
+         ORDER BY created_at DESC",
       )
       logs = results.map do |row|
         {
-          id:               row[:id],
-          title:            row[:title],
+          id: row[:id],
+          title: row[:title],
           duration_seconds: row[:duration],
-          date:             row[:date].strftime("%Y-%m-%d"),
-          created_at:       row[:created_at].strftime("%Y-%m-%dT%H:%M:%SZ")
+          date: row[:date].strftime("%Y-%m-%d"),
+          created_at: row[:created_at].strftime("%Y-%m-%dT%H:%M:%SZ")
         }
       end
       render_json(res, status: 200, body: logs)
@@ -58,7 +58,7 @@ module Controllers
 
       unless errors.empty?
         return render_json(res, status: 400,
-                                 body: { error: "無効なパラメータです。", details: errors })
+                                body: { error: "無効なパラメータです。", details: errors })
       end
 
       update_study_log(res, id, payload)
@@ -94,9 +94,9 @@ module Controllers
     def save_study_log(res, title, duration_ms, date_str = nil)
       secs = (duration_ms / 1000.0).round
 
-      jst_time = Time.now.getlocal('+09:00')
-      date_jst = date_str.to_s.strip.empty? ? jst_time.strftime('%Y-%m-%d') : date_str
-      created_at = jst_time.strftime('%Y-%m-%d %H:%M:%S')
+      jst_time = Time.now.getlocal("+09:00")
+      date_jst = date_str.to_s.strip.empty? ? jst_time.strftime("%Y-%m-%d") : date_str
+      created_at = jst_time.strftime("%Y-%m-%d %H:%M:%S")
 
       sql = <<~SQL
         INSERT INTO study_logs (title, duration, date, created_at)
@@ -114,6 +114,7 @@ module Controllers
 
     def format_duration(ms)
       return "0秒" unless ms.positive?
+
       total = ms / 1000
       h     = total / 3600
       m     = (total % 3600) / 60
@@ -126,10 +127,10 @@ module Controllers
         "UPDATE study_logs
             SET title = ?, duration = ?, date = ?
           WHERE id = ?",
-        [payload[:title], payload[:duration], payload[:date], id]
+        [payload[:title], payload[:duration], payload[:date], id],
       )
 
-      if result > 0
+      if result.positive?
         render_json(res, status: 200, body: { message: "ID:#{id}の学習記録を更新しました" })
       else
         render_json(res, status: 404, body: { error: "ID:#{id}の学習記録が見つかりません" })
@@ -138,7 +139,7 @@ module Controllers
 
     def delete_study_log(res, id)
       result = DB.client.execute("DELETE FROM study_logs WHERE id = ?", [id])
-      if result > 0
+      if result.positive?
         res.status = 204
       else
         render_json(res, status: 404, body: { error: "ID:#{id}の学習記録が見つかりません" })

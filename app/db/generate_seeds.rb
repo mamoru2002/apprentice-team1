@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'date'
+require "date"
 
-STUDY_CATEGORIES = ["Ruby", "CSS", "JavaScript", "HTML", "Paiza"]
-EXPENSE_CATEGORIES = ["食費", "衣服", "日用品", "美容", "雑貨"]
-OUTPUT_FILE = File.expand_path('02_seeds.sql', __dir__)
+STUDY_CATEGORIES = %w[Ruby CSS JavaScript HTML Paiza].freeze
+EXPENSE_CATEGORIES = %w[食費 衣服 日用品 美容 雑貨].freeze
+OUTPUT_FILE = File.expand_path("02_seeds.sql", __dir__)
 
 # --- データ生成ロジック ---
 today = Date.today
