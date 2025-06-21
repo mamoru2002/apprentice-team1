@@ -83,11 +83,18 @@ function renderCalendar(year, month) {
     const links = document.createElement('div');
     links.className = 'date-links';
     links.innerHTML = `
-      <a href="#detail-${dateStr}" class="detail-link">
+      <a href="#" class="detail-link" data-date="${dateStr}">
         <span class="link-main">詳細</span><br>
         <span class="link-sub">(編集)</span>
       </a>`;
     cell.appendChild(links);
+
+    const linkEl = links.querySelector('.detail-link');
+    linkEl.addEventListener('click', e => {
+      e.preventDefault();
+      const date = e.currentTarget.dataset.date;
+      window.location.href = `details.html?date=${date}`;
+    });
 
     cell.dataset.date = dateStr;
     cell.addEventListener('click', (e) => {
