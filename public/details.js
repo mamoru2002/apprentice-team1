@@ -438,7 +438,7 @@ handleClick(event) {
             }
             
             let result;
-            const payload = { taskName: this.state.selectedTask, duration: durationSeconds * 1000 };
+            const payload = { title: this.state.selectedTask, duration: durationSeconds * 1000 };
             
             if (this.state.isNewStudyMode) {
                 result = await ApiClient.post('/api/study_logs', payload);

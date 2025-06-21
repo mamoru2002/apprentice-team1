@@ -15,7 +15,7 @@ module Controllers
                                 body: { error: "\u7121\u52B9\u306A\u30D1\u30E9\u30E1\u30FC\u30BF\u3067\u3059\u3002", details: errors })
       end
 
-      save_study_log(res, payload[:taskName], payload[:duration])
+      save_study_log(res, payload[:title], payload[:duration])
     rescue StandardError => e
       handle_server_error(res, e)
     end
@@ -45,8 +45,8 @@ module Controllers
 
     def validate_params(payload)
       errors = []
-      if payload[:taskName].to_s.empty?
-        errors << "taskName \u306F\u5FC5\u9808\u3067\u3001\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002"
+      if payload[:title].to_s.empty?
+        errors << "title \u306F\u5FC5\u9808\u3067\u3001\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002"
       end
       unless payload[:duration].is_a?(Integer) && payload[:duration] >= 0
         errors << "duration \u306F\u5FC5\u9808\u3067\u30010\u4EE5\u4E0A\u306E\u6574\u6570\uFF08\u30DF\u30EA\u79D2\uFF09\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002"

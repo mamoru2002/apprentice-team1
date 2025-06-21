@@ -182,7 +182,7 @@ function setupStudyTracker() {
                 isStopwatchRunning = false;
             }
             try {
-                const result = await API.post('/api/study_logs', { taskName: selectedTask, duration: duration });
+                const result = await API.post('/api/study_logs', { title: selectedTask, duration: duration });
                 alert(result.message);
                 resetStopwatch();
                 UI.updateStopwatchDisplay(0);
