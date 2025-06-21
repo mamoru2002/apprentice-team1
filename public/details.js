@@ -569,7 +569,7 @@ class DetailsApp {
             let result;
             const payload = { 
                 title: this.state.selectedTask, 
-                duration: durationSeconds,
+                duration: durationSeconds * 1000,
                 date: this.state.currentDate
             };
             
