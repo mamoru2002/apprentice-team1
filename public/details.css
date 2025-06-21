@@ -33,6 +33,7 @@ body.details-page .header {
 
 .date-info .year {
     font-size: 1.2rem;
+    font-weight: bold;
     color: #73a4bc;
     margin-bottom: -0.2rem;
 }
@@ -71,11 +72,9 @@ body.details-page .sidebar.study-list-sidebar {
     min-width: 320px;
 }
 
-/* 詳細画面専用コンテナ */
 .expense-list-container, .study-list-container {
     border-radius: 20px;
     padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -83,7 +82,6 @@ body.details-page .sidebar.study-list-sidebar {
     gap: 15px;
     box-sizing: border-box;
     flex-grow: 1;
-    background-color: #f8f9fa;
 }
 
 /* 合計表示 */
@@ -144,16 +142,14 @@ body.details-page .sidebar.study-list-sidebar {
     margin-bottom: 8px;
     border-radius: 10px;
     cursor: pointer;
-    position: relative;
-    transition: all 0.2s ease;
 }
 
-.expense-item {
+.expense-item{
     background-color: #fafad2;
 }
 
 .study-item {
-    background-color: #e8f0fA;
+    background-color:  #e8f0fA;
 }
 
 .expense-item:last-child, .study-item:last-child {
@@ -237,48 +233,6 @@ body.details-page .sidebar.study-list-sidebar {
     border: 3px solid #555;
 }
 
-/* 詳細画面専用の削除ボタンスタイル */
-.expense-item .delete-btn,
-.study-item .delete-btn {
-    position: absolute;
-    right: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255, 71, 87, 0.9);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    z-index: 100;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    padding: 0;
-}
-
-.expense-item .delete-btn img,
-.study-item .delete-btn img {
-    filter: brightness(0) invert(1);
-    pointer-events: none;
-}
-
-.expense-item .delete-btn:hover,
-.study-item .delete-btn:hover {
-    background: rgba(255, 55, 66, 1);
-    transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-}
-
-/* hover時に削除ボタンを表示 */
-.expense-item:hover .delete-btn,
-.study-item:hover .delete-btn {
-    display: flex;
-}
-
 /* フッター */
 .footer {
     padding: 1rem 2rem;
@@ -301,4 +255,42 @@ body.details-page .sidebar.study-list-sidebar {
 .back-btn:hover {
     color: #5c8396;
     font-weight: bold;
+}
+.expense-item, .study-item, .category-item, .task-item {
+    position: relative;
+}
+
+.delete-btn {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 71, 87, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 100;
+}
+
+.delete-btn img {
+    filter: brightness(0) invert(1); /* 白色にする */
+    pointer-events: none; /* imgへのクリックイベントを無効化 */
+}
+
+.delete-btn:hover {
+    background: rgba(255, 55, 66, 1);
+}
+
+/* hover時に削除ボタンを表示 */
+.expense-item:hover .delete-btn,
+.study-item:hover .delete-btn,
+.category-item:hover .delete-btn,
+.task-item:hover .delete-btn {
+    display: flex;
 }
