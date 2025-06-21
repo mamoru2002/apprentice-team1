@@ -532,7 +532,7 @@ class DetailsApp {
             let result;
             const payload = { 
                 title: this.state.selectedTask, 
-                duration: durationSeconds,
+                duration: durationSeconds * 1000,
                 date: this.state.currentDate
             };
             
@@ -540,7 +540,12 @@ class DetailsApp {
                 result = await ApiClient.post('/api/study_logs', payload);
             } else if (this.state.editingStudyIndex !== null) {
                 const study = this.state.studies[this.state.editingStudyIndex];
-                result = await ApiClient.patch(`/api/study_logs/${study.id}`, payload);
+                const patchPayload = {
+                    title: this.state.selectedTask,
+                    duration: durationSeconds,
+                    date: this.state.currentDate
+                };
+                result = await ApiClient.patch(`/api/study_logs/${study.id}`, patchPayload);
             } else {
                 return alert("操作モードが不明です。");
             }
