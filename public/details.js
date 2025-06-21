@@ -213,11 +213,32 @@ class DetailsApp {
         this.setupEventListeners();
         await this.loadDailyData();
         
+        // 既存のカテゴリ・タスクに削除ボタンを追加
+        this.addDeleteButtonsToExistingItems();
+        
         // 初期状態で新規登録モードに設定
         this.startNewExpenseMode();
         this.startNewStudyMode();
         Dom.$('#addExpenseItemButton')?.classList.add('selected');
         Dom.$('#addStudyItemButton')?.classList.add('selected');
+    }
+
+    addDeleteButtonsToExistingItems() {
+        Dom.$$('.category-item').forEach(item => {
+            if (!item.querySelector('.delete-btn')) {
+                item.style.position = 'relative';
+                const name = item.dataset.category;
+                item.innerHTML += `<button class="delete-btn" data-type="category" data-name="${name}" title="削除"><img src="/trash-icon.svg" alt="削除" width="14" height="14"></button>`;
+            }
+        });
+
+        Dom.$$('.task-item').forEach(item => {
+            if (!item.querySelector('.delete-btn')) {
+                item.style.position = 'relative';
+                const name = item.dataset.task;
+                item.innerHTML += `<button class="delete-btn" data-type="task" data-name="${name}" title="削除"><img src="/trash-icon.svg" alt="削除" width="14" height="14"></button>`;
+            }
+        });
     }
     
     async loadDailyData() {
