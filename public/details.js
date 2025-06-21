@@ -335,10 +335,49 @@ class DetailsApp {
             if (confirm('この学習記録を削除しますか？')) {
                 await this.deleteStudy(id);
             }
-        } else if (type === 'category' || type === 'task') {
-            // TODO: 共通化されたカテゴリ・タスク削除処理を呼び出す
-            console.log(`${type} "${name}" の削除は後で実装予定`);
-            alert('カテゴリ・タスクの削除機能は準備中です');
+        } else if (type === 'category') {
+            if (confirm(`カテゴリ「${name}」を削除しますか？`)) {
+                this.deleteCategory(name);
+            }
+        } else if (type === 'task') {
+            if (confirm(`タスク「${name}」を削除しますか？`)) {
+                this.deleteTask(name);
+            }
+        }
+    }
+
+    // カテゴリ・タスク削除機能を復活
+    deleteCategory(name) {
+        const categoryItem = document.querySelector(`[data-category="${name}"]`);
+        if (categoryItem) {
+            categoryItem.remove();
+            if (this.state.selectedCategory === name) {
+                // 最初のカテゴリを選択
+                const firstCategory = document.querySelector('.category-item');
+                if (firstCategory) {
+                    firstCategory.classList.add('active');
+                    this.state.selectedCategory = firstCategory.dataset.category;
+                } else {
+                    this.state.selectedCategory = null;
+                }
+            }
+        }
+    }
+
+    deleteTask(name) {
+        const taskItem = document.querySelector(`[data-task="${name}"]`);
+        if (taskItem) {
+            taskItem.remove();
+            if (this.state.selectedTask === name) {
+                // 最初のタスクを選択
+                const firstTask = document.querySelector('.task-item');
+                if (firstTask) {
+                    firstTask.classList.add('active');
+                    this.state.selectedTask = firstTask.dataset.task;
+                } else {
+                    this.state.selectedTask = null;
+                }
+            }
         }
     }
 
@@ -362,29 +401,6 @@ class DetailsApp {
             alert(`削除中にエラーが発生しました: ${error.message}`);
         }
     }
-
-    // カテゴリ・タスクの削除は共通化予定のため一時的にコメントアウト
-    /*
-    deleteCategory(name) {
-        const categoryItem = document.querySelector(`[data-category="${name}"]`);
-        if (categoryItem) {
-            categoryItem.remove();
-            if (this.state.selectedCategory === name) {
-                this.state.selectedCategory = null;
-            }
-        }
-    }
-
-    deleteTask(name) {
-        const taskItem = document.querySelector(`[data-task="${name}"]`);
-        if (taskItem) {
-            taskItem.remove();
-            if (this.state.selectedTask === name) {
-                this.state.selectedTask = null;
-            }
-        }
-    }
-    */
 
     editExpenseItem(index) {
         Object.assign(this.state, {
@@ -532,7 +548,7 @@ class DetailsApp {
             let result;
             const payload = { 
                 title: this.state.selectedTask, 
-                duration: durationSeconds * 1000,
+                duration: durationSeconds,
                 date: this.state.currentDate
             };
             
@@ -540,12 +556,7 @@ class DetailsApp {
                 result = await ApiClient.post('/api/study_logs', payload);
             } else if (this.state.editingStudyIndex !== null) {
                 const study = this.state.studies[this.state.editingStudyIndex];
-                const patchPayload = {
-                    title: this.state.selectedTask,
-                    duration: durationSeconds,
-                    date: this.state.currentDate
-                };
-                result = await ApiClient.patch(`/api/study_logs/${study.id}`, patchPayload);
+                result = await ApiClient.patch(`/api/study_logs/${study.id}`, payload);
             } else {
                 return alert("操作モードが不明です。");
             }

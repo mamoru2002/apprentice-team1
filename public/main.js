@@ -2,7 +2,7 @@ import { start as startStopwatch, stop as stopStopwatch, reset as resetStopwatch
 import { initializeCalendar } from './calendar.js';
 document.addEventListener('DOMContentLoaded', () => {
     initializeCalendar();
-  });
+});
   
 const API = {
     async get(endpoint) {
@@ -73,27 +73,64 @@ const UI = {
         const newItem = document.createElement('li');
         newItem.classList.add(itemClass);
         newItem.dataset[dataAttribute] = name;
-        newItem.textContent = name;
+        newItem.style.position = 'relative';
+        newItem.innerHTML = `${name}<button class="delete-btn" data-type="${dataAttribute}" data-name="${name}" title="削除"><img src="/trash-icon.svg" alt="削除" width="14" height="14"></button>`;
         listElement.appendChild(newItem);
         return newItem;
     }
 };
+
+// 削除処理関数
+function handleCategoryTaskDelete(event) {
+    if (!event.target.classList.contains('delete-btn')) return;
+    
+    event.stopPropagation();
+    const type = event.target.dataset.type;
+    const name = event.target.dataset.name;
+    
+    if (confirm(`${type === 'category' ? 'カテゴリ' : 'タスク'}「${name}」を削除しますか？`)) {
+        const item = event.target.closest('li');
+        if (item) {
+            item.remove();
+            // 削除した項目が選択されていた場合の処理
+            if (type === 'category') {
+                const firstItem = document.querySelector('.category-item');
+                if (firstItem) {
+                    firstItem.classList.add('active');
+                    window.selectedCategory = firstItem.dataset.category;
+                }
+            } else if (type === 'task') {
+                const firstItem = document.querySelector('.task-item');
+                if (firstItem) {
+                    firstItem.classList.add('active');
+                    window.selectedTask = firstItem.dataset.task;
+                }
+            }
+        }
+    }
+}
 
 function setupExpenseTracker() {
     const amountInput = document.getElementById('amountInput');
     const categoryList = document.getElementById('categoryList');
     const addCategoryButton = document.getElementById('addCategoryButton');
     const logExpenseButton = document.getElementById('logExpenseButton');
-    let selectedCategory = "食費";
+    window.selectedCategory = "食費";
+
+    categoryList.querySelectorAll('.category-item').forEach(item => {
+        item.style.position = 'relative';
+        item.innerHTML += `<button class="delete-btn" data-type="category" data-name="${item.dataset.category}" title="削除"><img src="/trash-icon.svg" alt="削除" width="14" height="14"></button>`;
+    });
 
     if (categoryList) {
         categoryList.addEventListener('click', (event) => {
             if (event.target.matches('.category-item')) {
                 categoryList.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
                 event.target.classList.add('active');
-                selectedCategory = event.target.dataset.category;
+                window.selectedCategory = event.target.dataset.category;
             }
         });
+        categoryList.addEventListener('click', handleCategoryTaskDelete);
     }
 
     if (logExpenseButton) {
@@ -103,7 +140,7 @@ function setupExpenseTracker() {
                 return alert("有効な金額を入力してください。");
             }
             try {
-                const result = await API.post('/api/expense_logs', { title: selectedCategory, amount: amount });
+                const result = await API.post('/api/expense_logs', { title: window.selectedCategory, amount: amount });
                 alert(result.message);
                 UI.resetAmountInput();
                 document.dispatchEvent(new Event('calendar:refresh'));
@@ -125,7 +162,7 @@ function setupExpenseTracker() {
             const newItem = UI.createNewListItem(categoryList, 'category-item', 'category', trimmedName);
             categoryList.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
             newItem.classList.add('active');
-            selectedCategory = trimmedName;
+            window.selectedCategory = trimmedName;
         });
     }
 }
@@ -135,17 +172,23 @@ function setupStudyTracker() {
     const addTaskButton = document.getElementById('addTaskButton');
     const playPauseButton = document.getElementById('playPauseButton');
     const logTimeButton = document.getElementById('logTimeButton');
-    let selectedTask = "Ruby";
+    window.selectedTask = "Ruby";
     let isStopwatchRunning = false;
+
+    taskList.querySelectorAll('.task-item').forEach(item => {
+        item.style.position = 'relative';
+        item.innerHTML += `<button class="delete-btn" data-type="task" data-name="${item.dataset.task}" title="削除"><img src="/trash-icon.svg" alt="削除" width="14" height="14"></button>`;
+    });
 
     if (taskList) {
         taskList.addEventListener('click', (event) => {
             if (event.target.matches('.task-item')) {
                 taskList.querySelectorAll('.task-item').forEach(i => i.classList.remove('active'));
                 event.target.classList.add('active');
-                selectedTask = event.target.dataset.task;
+                window.selectedTask = event.target.dataset.task;
             }
         });
+        taskList.addEventListener('click', handleCategoryTaskDelete);
     }
 
     if (addTaskButton) {
@@ -159,7 +202,7 @@ function setupStudyTracker() {
             const newItem = UI.createNewListItem(taskList, 'task-item', 'task', trimmedName);
             taskList.querySelectorAll('.task-item').forEach(i => i.classList.remove('active'));
             newItem.classList.add('active');
-            selectedTask = trimmedName;
+            window.selectedTask = trimmedName;
         });
     }
     
@@ -183,7 +226,7 @@ function setupStudyTracker() {
                 isStopwatchRunning = false;
             }
             try {
-                const result = await API.post('/api/study_logs', { title: selectedTask, duration: duration });
+                const result = await API.post('/api/study_logs', { title: window.selectedTask, duration: duration });
                 alert(result.message);
                 resetStopwatch();
                 UI.updateStopwatchDisplay(0);
