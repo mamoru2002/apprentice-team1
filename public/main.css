@@ -4,7 +4,7 @@ body {
     justify-content: center;
     align-items: flex-start;
     min-height: 100vh;
-    background-color: #f0f4f8;
+    background-color: white;
     margin: 0;
     padding: 20px;
     box-sizing: border-box;
@@ -201,7 +201,7 @@ html {
 }
 
 .task-item.active {
-    border: 3px, solid, #6c92c5;
+    border: 3px solid #6c92c5;
     font-weight: bold;
 }
 
@@ -214,7 +214,7 @@ html {
 }
 
 .category-item.active {
-    border: 3px, solid, #fbc11f;
+    border: 3px solid #fbc11f;
     font-weight: bold;
 }
 
