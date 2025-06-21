@@ -1,9 +1,4 @@
-const workData = [
-  { date: '2025-06-01', expense: '¥1,560', hours: '6.5h' },
-  { date: '2025-06-02', expense: '¥980', hours: '7h' },
-  { date: '2025-06-04', expense: '¥440', hours: '3.4h' },
-  { date: '2025-06-06', expense: '¥2,480', hours: '6.5h' },
-];
+let calendarData = [];
 
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth(); // 0-indexed month
@@ -13,6 +8,27 @@ const yearEl = document.getElementById('current-year');
 const monthEl = document.getElementById('current-month');
 const prevBtn = document.getElementById('prev-month');
 const nextBtn = document.getElementById('next-month');
+
+async function loadCalendarData() {
+  try {
+    const res = await fetch('/api/calendar_data');
+    const data = await res.json();
+
+    calendarData = data.map(entry => ({
+      date: entry.date,
+      expense: entry.total_expense > 0
+        ? new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(entry.total_expense)
+        : null,
+      hours: entry.total_hours > 0
+        ? `${entry.total_hours}h`
+        : null
+    }));
+
+    renderCalendar(currentYear, currentMonth);
+  } catch (error) {
+    console.error('カレンダーデータの取得に失敗しました:', error);
+  }
+}
 
 function renderCalendar(year, month) {
   calendarEl.innerHTML = '';
@@ -53,6 +69,7 @@ function renderCalendar(year, month) {
       const thisDate = new Date(year, month, displayDay);
       dateStr = `${thisDate.getFullYear()}-${String(thisDate.getMonth() + 1).padStart(2, '0')}-${String(displayDay).padStart(2, '0')}`;
     }
+
     dayNum.textContent = displayDay;
     cell.appendChild(dayNum);
 
@@ -60,7 +77,7 @@ function renderCalendar(year, month) {
       cell.classList.add('today');
     }
 
-    const dayData = workData.find((entry) => entry.date === dateStr);
+    const dayData = calendarData.find(entry => entry.date === dateStr);
     if (dayData) {
       if (dayData.expense) {
         const expense = document.createElement('span');
@@ -121,8 +138,12 @@ export function initializeCalendar() {
     console.error('カレンダーの描画に必要なDOM要素が見つかりません。');
     return;
   }
-  
-  renderCalendar(currentYear, currentMonth);
+
+  loadCalendarData(); // ← 最初にデータを取得して描画
   prevBtn.addEventListener('click', handlePrevMonth);
   nextBtn.addEventListener('click', handleNextMonth);
 }
+
+document.addEventListener('calendar:refresh', () => {
+  loadCalendarData(); // ← サーバーから再取得して再描画
+});
