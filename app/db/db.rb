@@ -3,10 +3,8 @@
 require "mysql2"
 
 module DB
-
   class Client
     def initialize
-      # 接続情報を@optionsに保存
       @options = {
         host: ENV.fetch("DB_HOST", "db"),
         username: ENV.fetch("DB_USER", "user"),
@@ -15,37 +13,49 @@ module DB
         encoding: "utf8mb4",
         symbolize_keys: true
       }
-      @client = nil # この時点では接続しない
     end
 
-    def query(sql, params = [])
-      # メソッドが呼ばれるたびに接続し、使い終わったら切断する
-      connect
-      statement = @client.prepare(sql)
-      result = statement.execute(*params)
-      # 結果を配列として即座にメモリに読み込むことで、
-      # 「Commands out of sync」エラーを防ぐ
-      result&.to_a
+    # SELECT文など、データを「取得」するためのメソッド
+    def select(sql, params = [])
+      client = connect
+      statement = client.prepare(sql)
+      statement.execute(*params)&.to_a
     rescue Mysql2::Error => e
-      warn "--- MySQL Error ---"
-      warn "Message: #{e.message}"
-      warn "SQL: #{sql}"
-      warn "Params: #{params.inspect}"
-      warn "---------------------"
-      raise # エラーを再度発生させ、呼び出し元で処理する
+      handle_error(e, sql, params)
+      raise
     ensure
-      # 処理が成功してもエラーが発生しても、必ず接続を閉じる
-      @client&.close
+      client&.close
+    end
+
+    # INSERT, UPDATE, DELETEなど、データを「変更」するためのメソッド
+    def execute(sql, params = [])
+      client = connect
+      statement = client.prepare(sql)
+      statement.execute(*params)
+      # 変更された行数を返す
+      client.affected_rows
+    rescue Mysql2::Error => e
+      handle_error(e, sql, params)
+      raise
+    ensure
+      client&.close
     end
 
     private
 
     def connect
-      @client = Mysql2::Client.new(@options)
+      Mysql2::Client.new(@options)
+    end
+
+    def handle_error(error, sql, params)
+      warn "--- MySQL Error ---"
+      warn "Message: #{error.message}"
+      warn "SQL: #{sql}"
+      warn "Params: #{params.inspect}"
+      warn "---------------------"
     end
   end
 
-  # アプリケーション全体でこのメソッドを使ってDBクライアントを取得する
   def self.client
     Client.new
   end
