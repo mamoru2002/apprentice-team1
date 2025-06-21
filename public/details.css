@@ -1,0 +1,258 @@
+@import url('./main.css');
+
+/* 詳細画面用のbodyスタイル調整 */
+body.details-page {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: white;
+}
+
+/* 詳細画面ヘッダー */
+body.details-page .header {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: normal;
+    padding: 1rem;
+    margin-bottom: 20px;
+}
+
+.date-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.date-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0; 
+}
+
+.date-info .year {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #73a4bc;
+    margin-bottom: -0.2rem;
+}
+
+.date-info .date {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #73a4bc;
+    line-height: 1;
+    height: auto;
+    border: none;
+    padding: 0;
+    position: static;
+    display: block;
+    flex-direction: row;
+    overflow: visible;
+}
+
+/* 詳細画面用のappコンテナ調整 */
+.app-container.details {
+    max-width: 1200px;
+    margin: 0 auto;
+    justify-content: center;
+}
+
+/* 詳細画面での幅調整 */
+body.details-page .sidebar.expense-tracker-sidebar,
+body.details-page .sidebar.study-tracker-sidebar {
+    flex: 1 1 22%;
+    min-width: 280px;
+}
+
+body.details-page .sidebar.expense-list-sidebar,
+body.details-page .sidebar.study-list-sidebar {
+    flex: 1 1 28%;
+    min-width: 320px;
+}
+
+.expense-list-container, .study-list-container {
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 15px;
+    box-sizing: border-box;
+    flex-grow: 1;
+}
+
+/* 合計表示 */
+.total-amount-display {
+    background-color: #ffffff;
+    border: 3px solid #d3d3d3;
+    border-radius: 15px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+}
+
+.total-amount {
+    font-size: 1.8em;
+    color: #333;
+    font-weight: bold;
+    font-family: 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+}
+
+.total-time-display {
+    background-color: #ffffff;
+    border: 3px solid #d3d3d3;
+    border-radius: 15px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+    font-size: 1.8em;
+    color: #333;
+    font-weight: bold;
+    font-family: 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+}
+
+/* アイテムリスト */
+.expense-items-list, .study-items-list {
+    background-color: #fff;
+    border: 3px solid #d3d3d3;
+    border-radius: 15px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    height: 250px;
+    overflow-y: auto;
+}
+
+.expense-item, .study-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.expense-item{
+    background-color: #fafad2;
+}
+
+.study-item {
+    background-color:  #e8f0fA;
+}
+
+.expense-item:last-child, .study-item:last-child {
+    margin-bottom: 0;
+}
+
+.expense-item.selected {
+    border: 3px solid #ffae42;
+}
+
+.study-item.selected {
+    border: 3px solid #6c92c5;
+}
+
+/* タグスタイル */
+.category-tag {
+    background-color: #fafad2;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.subject-tag {
+    background-color: #e8f0fA;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.amount-value, .time-value {
+    font-weight: bold;
+    color: #333;
+    font-family: 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+}
+
+/* 時間入力フィールド */
+.time-input-display {
+    background-color: #ffffff;
+    border: 1px solid #a7c5eb;
+    border-radius: 15px;
+    padding: 15px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+}
+
+.time-field {
+    font-size: 2em;
+    color: #333;
+    font-weight: bold;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    width: 100%;
+    text-align: center;
+    font-family: 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+    margin-bottom: 8px;
+}
+
+.time-field::placeholder {
+    color: #aaa;
+    font-weight: normal;
+}
+
+.time-format-hint {
+    font-size: 0.8em;
+    color: #777;
+    font-weight: normal;
+}
+
+/* 選択状態のボタン */
+.add-category-btn.selected,
+.add-task-btn.selected {
+    border: 3px solid #555;
+}
+
+/* フッター */
+.footer {
+    padding: 1rem 2rem;
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.back-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    color: #73a4bc;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    color: #5c8396;
+    font-weight: bold;
+}
