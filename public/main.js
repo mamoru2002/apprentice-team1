@@ -106,6 +106,7 @@ function setupExpenseTracker() {
                 const result = await API.post('/api/expense_logs', { title: selectedCategory, amount: amount });
                 alert(result.message);
                 UI.resetAmountInput();
+                document.dispatchEvent(new Event('calendar:refresh'));
                 API.get('/api/expense_summary').then(UI.updateExpenseSummary);
             } catch (error) {
                 alert(`支出の記録中にエラーが発生しました: ${error.message}`);
@@ -188,6 +189,7 @@ function setupStudyTracker() {
                 UI.updateStopwatchDisplay(0);
                 UI.updatePlayPauseButton(false);
                 UI.toggleStopwatchRunningClass(false);
+                document.dispatchEvent(new Event('calendar:refresh'));
                 API.get('/api/study_summary').then(UI.updateStudySummary);
             } catch (error) {
                 alert(`学習時間の記録中にエラーが発生しました: ${error.message}`);
@@ -205,6 +207,7 @@ function initializeApp() {
     setupStudyTracker();
     API.get('/api/expense_summary').then(UI.updateExpenseSummary);
     API.get('/api/study_summary').then(UI.updateStudySummary);
+    document.dispatchEvent(new Event('calendar:refresh'));
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
