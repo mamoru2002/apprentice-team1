@@ -101,21 +101,21 @@ module Controllers
     rescue Date::Error
       false
     end
-    
+
     def save_expense_log(res, title, amount, date_str = nil)
+      jst_time = Time.now.getlocal('+09:00')
       if date_str.to_s.strip.empty?
-        sql  = <<~SQL
-          INSERT INTO expense_logs (title, amount, date, created_at)
-          VALUES (?, ?, CURDATE(), NOW())
-        SQL
-        args = [title, amount]
+        date_jst = jst_time.strftime('%Y-%m-%d')
       else
-        sql  = <<~SQL
-          INSERT INTO expense_logs (title, amount, date, created_at)
-          VALUES (?, ?, ?, NOW())
-        SQL
-        args = [title, amount, date_str]
+        date_jst = date_str
       end
+      created_at = jst_time.strftime('%Y-%m-%d %H:%M:%S')
+
+      sql = <<~SQL
+        INSERT INTO expense_logs (title, amount, date, created_at)
+        VALUES (?, ?, ?, ?)
+      SQL
+      args = [title, amount, date_jst, created_at]
 
       DB.client.execute(sql, args)
       render_json(res, status: 201, body: { message: "#{title} を #{amount}円で記録しました。" })
