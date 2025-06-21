@@ -553,39 +553,41 @@ class DetailsApp {
       return false;
     }
   }
-
   async handleStudyRegistration() {
     const timeStr = Dom.$('#timeInput').value.trim();
-
+  
     if (!timeStr) {
       return alert('時間を入力してください。（例: 013000 = 1時間30分）');
     }
     if (!this.state.selectedTask) {
       return alert('タスクを選択してください。');
     }
-
+  
     try {
       const durationSeconds = Utils.parseTimeInput(timeStr);
       if (durationSeconds === 0) {
         return alert('0より大きい時間を入力してください。');
       }
-
+  
       let result;
-      const payload = {
-        title: this.state.selectedTask,
-        duration: durationSeconds * 1000,
-        date: this.state.currentDate,
-      };
-
       if (this.state.isNewStudyMode) {
-        result = await ApiClient.post('/api/study_logs', payload);
+        const postPayload = {
+          title: this.state.selectedTask,
+          duration: durationSeconds * 1000, // ← ミリ秒で送信（新規）
+          date: this.state.currentDate,
+        };
+        result = await ApiClient.post('/api/study_logs', postPayload);
       } else if (this.state.editingStudyIndex !== null) {
         const study = this.state.studies[this.state.editingStudyIndex];
-        result = await ApiClient.patch(`/api/study_logs/${study.id}`, payload);
+        const patchPayload = {
+          title: this.state.selectedTask,
+          duration: durationSeconds, // ← 秒で送信（更新）
+          date: this.state.currentDate,
+        };
+        result = await ApiClient.patch(`/api/study_logs/${study.id}`, patchPayload);
       } else {
         return alert('操作モードが不明です。');
       }
-
       alert(result.message);
       await this.loadDailyData();
       this.resetStudyState();
