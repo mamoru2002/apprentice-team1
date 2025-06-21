@@ -567,17 +567,23 @@ class DetailsApp {
             }
             
             let result;
-            const payload = { 
-                title: this.state.selectedTask, 
-                duration: durationSeconds * 1000,
-                date: this.state.currentDate
-            };
-            
             if (this.state.isNewStudyMode) {
-                result = await ApiClient.post('/api/study_logs', payload);
+            // 新規登録 : ミリ秒を送ってサーバー側で秒に変換
+            const postPayload = {
+                title:    this.state.selectedTask,
+                duration: durationSeconds * 1000,
+                date:     this.state.currentDate
+            };
+            result = await ApiClient.post('/api/study_logs', postPayload);
             } else if (this.state.editingStudyIndex !== null) {
-                const study = this.state.studies[this.state.editingStudyIndex];
-                result = await ApiClient.patch(`/api/study_logs/${study.id}`, payload);
+            // 更新     : 秒を送る
+            const study = this.state.studies[this.state.editingStudyIndex];
+            const patchPayload = {
+                title:    this.state.selectedTask,
+                duration: durationSeconds,        // ← 秒
+                date:     this.state.currentDate
+            };
+            result = await ApiClient.patch(`/api/study_logs/${study.id}`, patchPayload);
             } else {
                 return alert("操作モードが不明です。");
             }
