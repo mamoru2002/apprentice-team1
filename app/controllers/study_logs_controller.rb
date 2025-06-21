@@ -94,19 +94,15 @@ module Controllers
     def save_study_log(res, title, duration_ms, date_str = nil)
       secs = (duration_ms / 1000.0).round
 
-      if date_str.to_s.strip.empty?
-        sql  = <<~SQL
-          INSERT INTO study_logs (title, duration, date, created_at)
-          VALUES (?, ?, CURDATE(), NOW())
-        SQL
-        args = [title, secs]
-      else
-        sql  = <<~SQL
-          INSERT INTO study_logs (title, duration, date, created_at)
-          VALUES (?, ?, ?, NOW())
-        SQL
-        args = [title, secs, date_str]
-      end
+      jst_time = Time.now.getlocal('+09:00')
+      date_jst = date_str.to_s.strip.empty? ? jst_time.strftime('%Y-%m-%d') : date_str
+      created_at = jst_time.strftime('%Y-%m-%d %H:%M:%S')
+
+      sql = <<~SQL
+        INSERT INTO study_logs (title, duration, date, created_at)
+        VALUES (?, ?, ?, ?)
+      SQL
+      args = [title, secs, date_jst, created_at]
 
       DB.client.execute(sql, args)
       message = "#{title} の学習時間 #{format_duration(duration_ms)} を記録しました。"
