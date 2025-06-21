@@ -79,8 +79,9 @@ module Controllers
     def validate_params(payload)
       errs = []
       errs << "title は必須で、文字列である必要があります。" if payload[:title].to_s.strip.empty?
-      errs << "amount は必須で、0以上の整数である必要があります。" unless payload[:amount].is_a?(Integer) && payload[:amount] >= 0
-      errs << "date は必須で、YYYY-MM-DD形式である必要があります。" unless payload[:date]&.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+      unless payload[:amount].is_a?(Integer) && payload[:amount] >= 0
+        errs << "amount は必須で、0以上の整数である必要があります。"
+      end
       errs
     end
 
@@ -101,7 +102,7 @@ module Controllers
       false
     end
     
-    def save_expense_log(res, title, amount, date_str)
+    def save_expense_log(res, title, amount, date_str = nil)
       if date_str.to_s.strip.empty?
         sql  = <<~SQL
           INSERT INTO expense_logs (title, amount, date, created_at)

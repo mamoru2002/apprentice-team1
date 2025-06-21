@@ -17,7 +17,10 @@ module Controllers
                                  body: { error: "無効なパラメータです。", details: errors })
       end
 
-      save_study_log(res, payload[:title], payload[:duration], payload[:date])
+      save_study_log(res,
+                payload[:title],
+                payload[:duration],
+                payload[:date])
     rescue StandardError => e
       handle_server_error(res, e)
     end
@@ -77,7 +80,6 @@ module Controllers
       errs = []
       errs << "title は必須で、文字列である必要があります。" if payload[:title].to_s.strip.empty?
       errs << "duration は必須で、0以上の整数（ミリ秒）である必要があります。" unless payload[:duration].is_a?(Integer) && payload[:duration] >= 0
-      errs << "date は必須で、YYYY-MM-DD形式である必要があります。" unless payload[:date]&.match?(/\A\d{4}-\d{2}-\d{2}\z/)
       errs
     end
 
@@ -89,8 +91,7 @@ module Controllers
       errs
     end
 
-    def save_study_log(res, title, duration_ms, date_str)
-      # ミリ秒で受け取り、秒に変換
+    def save_study_log(res, title, duration_ms, date_str = nil)
       secs = (duration_ms / 1000.0).round
 
       if date_str.to_s.strip.empty?
