@@ -256,3 +256,41 @@ body.details-page .sidebar.study-list-sidebar {
     color: #5c8396;
     font-weight: bold;
 }
+.expense-item, .study-item, .category-item, .task-item {
+    position: relative;
+}
+
+.delete-btn {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 71, 87, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 100;
+}
+
+.delete-btn img {
+    filter: brightness(0) invert(1); /* 白色にする */
+    pointer-events: none; /* imgへのクリックイベントを無効化 */
+}
+
+.delete-btn:hover {
+    background: rgba(255, 55, 66, 1);
+}
+
+/* hover時に削除ボタンを表示 */
+.expense-item:hover .delete-btn,
+.study-item:hover .delete-btn,
+.category-item:hover .delete-btn,
+.task-item:hover .delete-btn {
+    display: flex;
+}

@@ -8,6 +8,10 @@ class ApiClient {
             if (body) options.body = JSON.stringify(body);
             
             const response = await fetch(endpoint, options);
+            if (response.status === 204) {
+                return { success: true };
+            }
+            
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'リクエストに失敗しました');
             return data;
@@ -19,7 +23,8 @@ class ApiClient {
     
     static get = (endpoint) => this.request('GET', endpoint);
     static post = (endpoint, body) => this.request('POST', endpoint, body);
-    static put = (endpoint, body) => this.request('PUT', endpoint, body);
+    static patch = (endpoint, body) => this.request('PATCH', endpoint, body);
+    static delete = (endpoint) => this.request('DELETE', endpoint);
 }
 
 // ユーティリティ関数
@@ -60,6 +65,9 @@ const Templates = {
         <div class="expense-item" data-index="${index}" data-id="${expense.id}">
             <span class="category-tag">${expense.category}</span>
             <span class="amount-value">¥${expense.amount.toLocaleString()}</span>
+            <button class="delete-btn" data-type="expense" data-id="${expense.id}" title="削除">
+                <img src="/trash-icon.svg" alt="削除" width="16" height="16">
+            </button>
         </div>
     `,
     
@@ -67,12 +75,23 @@ const Templates = {
         <div class="study-item" data-index="${index}" data-id="${study.id}">
             <span class="subject-tag">${study.category}</span>
             <span class="time-value">${Utils.formatTime(study.duration_seconds)}</span>
+            <button class="delete-btn" data-type="study" data-id="${study.id}" title="削除">
+                <img src="/trash-icon.svg" alt="削除" width="16" height="16">
+            </button>
         </div>
     `,
     
-    listItem: (itemClass, dataAttribute, name) => `
-        <li class="${itemClass}" data-${dataAttribute}="${name}">${name}</li>
-    `
+    listItem: (itemClass, dataAttribute, name, type = null) => {
+        const itemType = type || (dataAttribute === 'category' ? 'category' : 'task');
+        return `
+            <li class="${itemClass}" data-${dataAttribute}="${name}">
+                ${name}
+                <button class="delete-btn" data-type="${itemType}" data-name="${name}" title="削除">
+                    <img src="/trash-icon.svg" alt="削除" width="14" height="14">
+                </button>
+            </li>
+        `;
+    }
 };
 
 // DOM操作ヘルパー
@@ -158,7 +177,9 @@ class UIManager {
             return null;
         }
         
-        list.insertAdjacentHTML('beforeend', Templates.listItem(itemClass, dataAttribute, name));
+        // typeを判定
+        const type = dataAttribute === 'category' ? 'category' : 'task';
+        list.insertAdjacentHTML('beforeend', Templates.listItem(itemClass, dataAttribute, name, type));
         const newItem = list.lastElementChild;
         
         Dom.removeClassFromAll(list.children, 'active');
@@ -185,19 +206,19 @@ class DetailsApp {
     }
     
     async initialize() {
-    const urlParams = new URLSearchParams(window.location.search);
-    this.state.currentDate = urlParams.get('date') || new Date().toISOString().split('T')[0];
-    
-    UIManager.updateDateDisplay(this.state.currentDate);
-    this.setupEventListeners();
-    await this.loadDailyData();
-    
-    // 初期状態で新規登録モードに設定
-    this.startNewExpenseMode();
-    this.startNewStudyMode();
-    Dom.$('#addExpenseItemButton')?.classList.add('selected');
-    Dom.$('#addStudyItemButton')?.classList.add('selected');
-}
+        const urlParams = new URLSearchParams(window.location.search);
+        this.state.currentDate = urlParams.get('date') || new Date().toISOString().split('T')[0];
+        
+        UIManager.updateDateDisplay(this.state.currentDate);
+        this.setupEventListeners();
+        await this.loadDailyData();
+        
+        // 初期状態で新規登録モードに設定
+        this.startNewExpenseMode();
+        this.startNewStudyMode();
+        Dom.$('#addExpenseItemButton')?.classList.add('selected');
+        Dom.$('#addStudyItemButton')?.classList.add('selected');
+    }
     
     async loadDailyData() {
         try {
@@ -230,114 +251,181 @@ class DetailsApp {
         Dom.$('#nextDay')?.addEventListener('click', () => this.navigateDate(1));
     }
     
-handleClick(event) {
-    const target = event.target;
-    const closest = target.closest.bind(target);
+    handleClick(event) {
+        const target = event.target;
+        const closest = target.closest.bind(target);
 
-    // 項目選択（編集モード）
-    if (closest('.expense-item')) {
-      const index = parseInt(closest('.expense-item').dataset.index, 10);
-      this.editExpenseItem(index);
-      return;
-    } else if (closest('.study-item')) {
-      const index = parseInt(closest('.study-item').dataset.index, 10);
-      this.editStudyItem(index);
-      return;
+        // 削除ボタンのクリック処理
+        if (target.classList.contains('delete-btn')) {
+            event.stopPropagation();
+            this.handleDelete(target);
+            return;
+        }
+
+        // 項目選択（編集モード）
+        if (closest('.expense-item')) {
+            const index = parseInt(closest('.expense-item').dataset.index, 10);
+            this.editExpenseItem(index);
+            return;
+        } else if (closest('.study-item')) {
+            const index = parseInt(closest('.study-item').dataset.index, 10);
+            this.editStudyItem(index);
+            return;
+        }
+
+        // 支出の「＋」ボタン
+        if (target.id === 'addExpenseItemButton') {
+            this.startNewExpenseMode();
+            target.classList.add('selected');
+            document.getElementById('addStudyItemButton')?.classList.remove('selected');
+            return;
+        }
+
+        // 学習の「＋」ボタン
+        if (target.id === 'addStudyItemButton') {
+            this.startNewStudyMode();
+            target.classList.add('selected');
+            document.getElementById('addExpenseItemButton')?.classList.remove('selected');
+            return;
+        }
+
+        // カテゴリー・タスク選択
+        if (target.matches('.category-item')) {
+            this.selectCategory(target);
+            return;
+        } else if (target.matches('.task-item')) {
+            this.selectTask(target);
+            return;
+        }
+
+        // カテゴリー・タスク追加
+        if (target.id === 'addCategoryButton') {
+            this.addNewCategory();
+            return;
+        } else if (target.id === 'addTaskButton') {
+            this.addNewTask();
+            return;
+        }
+
+        // 登録ボタン
+        if (target.id === 'logExpenseButton') {
+            this.handleExpenseRegistration();
+            return;
+        } else if (target.id === 'logTimeButton') {
+            this.handleStudyRegistration();
+            return;
+        }
+
+        // 戻るボタン
+        if (target.matches('.back-btn')) {
+            window.location.href = '/';
+        }
     }
 
-    // 支出の「＋」ボタン
-    if (target.id === 'addExpenseItemButton') {
-      this.startNewExpenseMode();
-      // 自分に selected、学習側からは外す
-      target.classList.add('selected');
-      document.getElementById('addStudyItemButton')?.classList.remove('selected');
-      return;
+    async handleDelete(deleteBtn) {
+        const type = deleteBtn.dataset.type;
+        const id = deleteBtn.dataset.id;
+        const name = deleteBtn.dataset.name;
+
+        if (type === 'expense') {
+            if (confirm('この支出記録を削除しますか？')) {
+                await this.deleteExpense(id);
+            }
+        } else if (type === 'study') {
+            if (confirm('この学習記録を削除しますか？')) {
+                await this.deleteStudy(id);
+            }
+        } else if (type === 'category' || type === 'task') {
+            // TODO: 共通化されたカテゴリ・タスク削除処理を呼び出す
+            console.log(`${type} "${name}" の削除は後で実装予定`);
+            alert('カテゴリ・タスクの削除機能は準備中です');
+        }
     }
 
-    // 学習の「＋」ボタン
-    if (target.id === 'addStudyItemButton') {
-      this.startNewStudyMode();
-      // 自分に selected、支出側からは外す
-      target.classList.add('selected');
-      document.getElementById('addExpenseItemButton')?.classList.remove('selected');
-      return;
+    // データ記録の削除（API経由）
+    async deleteExpense(id) {
+        try {
+            await ApiClient.delete(`/api/expense_logs/${id}`);
+            alert('支出記録を削除しました。');
+            await this.loadDailyData();
+        } catch (error) {
+            alert(`削除中にエラーが発生しました: ${error.message}`);
+        }
     }
 
-    // カテゴリー・タスク選択
-    if (target.matches('.category-item')) {
-      this.selectCategory(target);
-      return;
-    } else if (target.matches('.task-item')) {
-      this.selectTask(target);
-      return;
+    async deleteStudy(id) {
+        try {
+            await ApiClient.delete(`/api/study_logs/${id}`);
+            alert('学習記録を削除しました。');
+            await this.loadDailyData();
+        } catch (error) {
+            alert(`削除中にエラーが発生しました: ${error.message}`);
+        }
     }
 
-    // カテゴリー・タスク追加
-    if (target.id === 'addCategoryButton') {
-      this.addNewCategory();
-      return;
-    } else if (target.id === 'addTaskButton') {
-      this.addNewTask();
-      return;
+    // カテゴリ・タスクの削除は共通化予定のため一時的にコメントアウト
+    /*
+    deleteCategory(name) {
+        const categoryItem = document.querySelector(`[data-category="${name}"]`);
+        if (categoryItem) {
+            categoryItem.remove();
+            if (this.state.selectedCategory === name) {
+                this.state.selectedCategory = null;
+            }
+        }
     }
 
-    // 登録ボタン
-    if (target.id === 'logExpenseButton') {
-      this.handleExpenseRegistration();
-      return;
-    } else if (target.id === 'logTimeButton') {
-      this.handleStudyRegistration();
-      return;
+    deleteTask(name) {
+        const taskItem = document.querySelector(`[data-task="${name}"]`);
+        if (taskItem) {
+            taskItem.remove();
+            if (this.state.selectedTask === name) {
+                this.state.selectedTask = null;
+            }
+        }
     }
+    */
 
-    // 戻るボタン
-    if (target.matches('.back-btn')) {
-      window.location.href = '/';
+    editExpenseItem(index) {
+        Object.assign(this.state, {
+            editingExpenseIndex: index,
+            isNewExpenseMode: false
+        });
+
+        const expense = this.state.expenses[index];
+        if (expense) {
+            Dom.updateValue('#amountInput', expense.amount);
+            UIManager.selectByData('.category-item', 'category', expense.category);
+            this.state.selectedCategory = expense.category;
+        }
+
+        UIManager.selectItem('.expense-item', index);
+        Dom.$('#addExpenseItemButton')?.classList.remove('selected');
     }
-  }
-  editExpenseItem(index) {
-    Object.assign(this.state, {
-      editingExpenseIndex: index,
-      isNewExpenseMode: false
-    });
-
-    const expense = this.state.expenses[index];
-    if (expense) {
-      Dom.updateValue('#amountInput', expense.amount);
-      UIManager.selectByData('.category-item', 'category', expense.category);
-      this.state.selectedCategory = expense.category;
-    }
-
-    UIManager.selectItem('.expense-item', index);
-    Dom.$('#addExpenseItemButton')?.classList.remove('selected');
-  }
     
-  editStudyItem(index) {
-    Object.assign(this.state, {
-      editingStudyIndex: index,
-      isNewStudyMode: false
-    });
+    editStudyItem(index) {
+        Object.assign(this.state, {
+            editingStudyIndex: index,
+            isNewStudyMode: false
+        });
 
-    const study = this.state.studies[index];
-    if (study) {
-      Dom.updateValue('#timeInput', Utils.formatTimeInput(study.duration_seconds));
-      UIManager.selectByData('.task-item', 'task', study.category);
-      this.state.selectedTask = study.category;
+        const study = this.state.studies[index];
+        if (study) {
+            Dom.updateValue('#timeInput', Utils.formatTimeInput(study.duration_seconds));
+            UIManager.selectByData('.task-item', 'task', study.category);
+            this.state.selectedTask = study.category;
+        }
+
+        UIManager.selectItem('.study-item', index);
+        Dom.$('#addStudyItemButton')?.classList.remove('selected');
     }
 
-    // 日付アイテム選択の枠付け
-    UIManager.selectItem('.study-item', index);
-    // 新規追加ボタンの選択解除
-    Dom.$('#addStudyItemButton')?.classList.remove('selected');
-  }
-
-
-  navigateDate(days) {
-    const currentDate = new Date(this.state.currentDate);
-    currentDate.setDate(currentDate.getDate() + days);
-    const newDate = currentDate.toISOString().split('T')[0];
-    window.location.href = `/details.html?date=${newDate}`;
-}
+    navigateDate(days) {
+        const currentDate = new Date(this.state.currentDate);
+        currentDate.setDate(currentDate.getDate() + days);
+        const newDate = currentDate.toISOString().split('T')[0];
+        window.location.href = `/details.html?date=${newDate}`;
+    }
     
     startNewExpenseMode() {
         Object.assign(this.state, {
@@ -401,13 +489,17 @@ handleClick(event) {
         
         try {
             let result;
-            const payload = { title: this.state.selectedCategory, amount };
+            const payload = { 
+                title: this.state.selectedCategory,
+                amount,
+                date: this.state.currentDate
+            };
             
             if (this.state.isNewExpenseMode) {
                 result = await ApiClient.post('/api/expense_logs', payload);
             } else if (this.state.editingExpenseIndex !== null) {
                 const expense = this.state.expenses[this.state.editingExpenseIndex];
-                result = await ApiClient.put(`/api/expense_logs/${expense.id}`, payload);
+                result = await ApiClient.patch(`/api/expense_logs/${expense.id}`, payload);
             } else {
                 return alert("操作モードが不明です。");
             }
@@ -438,13 +530,17 @@ handleClick(event) {
             }
             
             let result;
-            const payload = { title: this.state.selectedTask, duration: durationSeconds * 1000 };
+            const payload = { 
+                title: this.state.selectedTask, 
+                duration: durationSeconds,
+                date: this.state.currentDate
+            };
             
             if (this.state.isNewStudyMode) {
                 result = await ApiClient.post('/api/study_logs', payload);
             } else if (this.state.editingStudyIndex !== null) {
                 const study = this.state.studies[this.state.editingStudyIndex];
-                result = await ApiClient.put(`/api/study_logs/${study.id}`, payload);
+                result = await ApiClient.patch(`/api/study_logs/${study.id}`, payload);
             } else {
                 return alert("操作モードが不明です。");
             }
