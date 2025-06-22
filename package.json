@@ -4,8 +4,9 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "lint": "eslint public/*.js"
-    },
+    "lint": "eslint public/**/*.js",
+    "lint:fix": "eslint public/**/*.js --fix"
+  },
     "devDependencies": {
         "eslint": "^8.0.0",
         "eslint-config-airbnb-base": "^15.0.0",

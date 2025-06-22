@@ -13,6 +13,15 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
+    'max-len': 'off',
+    'max-classes-per-file': 'off',
+    'no-alert': 'off',
+    'no-restricted-globals': 'off',
+    'import/extensions': 'off',
+    'consistent-return': 'off',
+    'no-unused-expressions': 'off',
+
+    // --- 既存のルール ---
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],

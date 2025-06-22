@@ -553,22 +553,23 @@ class DetailsApp {
       return false;
     }
   }
+
   async handleStudyRegistration() {
     const timeStr = Dom.$('#timeInput').value.trim();
-  
+
     if (!timeStr) {
       return alert('時間を入力してください。（例: 013000 = 1時間30分）');
     }
     if (!this.state.selectedTask) {
       return alert('タスクを選択してください。');
     }
-  
+
     try {
       const durationSeconds = Utils.parseTimeInput(timeStr);
       if (durationSeconds === 0) {
         return alert('0より大きい時間を入力してください。');
       }
-  
+
       let result;
       if (this.state.isNewStudyMode) {
         const postPayload = {
