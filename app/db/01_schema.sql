@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 CREATE TABLE IF NOT EXISTS study_logs (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   title      VARCHAR(255)         NOT NULL,
