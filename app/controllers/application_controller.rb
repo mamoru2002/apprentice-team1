@@ -45,7 +45,7 @@ class ApplicationController < WEBrick::HTTPServlet::AbstractServlet
 
   def render_json(res, status:, body:)
     res.status = status
-    res["Content-Type"] = "application/json"
+    res["Content-Type"] = "application/json; charset=UTF-8"
     res.body = JSON.generate(body)
   end
 

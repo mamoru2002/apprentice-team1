@@ -30,9 +30,9 @@ class ApiClient {
   static delete = (endpoint) => this.request('DELETE', endpoint);
 }
 
-// ユーティリティ関数
 const Utils = {
   formatTime: (seconds) => {
+    if (typeof seconds !== 'number' || Number.isNaN(seconds)) return '00:00:00';
     const pad = (n) => n.toString().padStart(2, '0');
     return `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor((seconds % 3600) / 60))}:${pad(seconds % 60)}`;
   },
@@ -49,6 +49,7 @@ const Utils = {
   },
 
   formatTimeInput: (seconds) => {
+    if (typeof seconds !== 'number' || Number.isNaN(seconds)) return '';
     const pad = (n) => n.toString().padStart(2, '0');
     return `${pad(Math.floor(seconds / 3600))}${pad(Math.floor((seconds % 3600) / 60))}${pad(seconds % 60)}`;
   },
@@ -62,7 +63,6 @@ const Utils = {
   },
 };
 
-// テンプレート関数
 const Templates = {
   expenseItem: (expense, index) => `
         <div class="expense-item" data-index="${index}" data-id="${expense.id}">
@@ -84,20 +84,16 @@ const Templates = {
         </div>
     `,
 
-  listItem: (itemClass, dataAttribute, name, type = null) => {
-    const itemType = type || (dataAttribute === 'category' ? 'category' : 'task');
-    return `
+  listItem: (itemClass, dataAttribute, name) => `
             <li class="${itemClass}" data-${dataAttribute}="${name}">
                 ${name}
-                <button class="delete-btn" data-type="${itemType}" data-name="${name}" title="削除">
+                <button class="delete-btn" data-type="${dataAttribute}" data-name="${name}" title="削除">
                     <img src="/trash-icon.svg" alt="削除" width="14" height="14">
                 </button>
             </li>
-        `;
-  },
+        `,
 };
 
-// DOM操作ヘルパー
 const Dom = {
   $: (selector) => document.querySelector(selector),
   $$: (selector) => document.querySelectorAll(selector),
@@ -110,10 +106,6 @@ const Dom = {
   updateValue: (selector, value) => {
     const el = Dom.$(selector);
     if (el) el.value = value;
-  },
-
-  toggleClass: (elements, className, condition) => {
-    elements.forEach((el) => el.classList.toggle(className, condition));
   },
 
   removeClassFromAll: (selector, className) => {
@@ -129,7 +121,6 @@ const Dom = {
   },
 };
 
-// UI管理クラス
 class UIManager {
   static updateDateDisplay(dateStr) {
     const { year, monthDay } = Utils.formatDate(dateStr);
@@ -167,32 +158,8 @@ class UIManager {
     Dom.updateValue(inputSelector, '');
     Dom.removeClassFromAll(itemSelector, 'active');
   }
-
-  static addListItem(listSelector, itemClass, dataAttribute, name) {
-    const list = Dom.$(listSelector);
-    if (!list) return null;
-
-    // 重複チェック
-    const existing = Array.from(list.children)
-      .some((item) => item.dataset[dataAttribute] === name);
-    if (existing) {
-      alert('同じ名前の項目が既に存在します。');
-      return null;
-    }
-
-    // typeを判定
-    const type = dataAttribute === 'category' ? 'category' : 'task';
-    list.insertAdjacentHTML('beforeend', Templates.listItem(itemClass, dataAttribute, name, type));
-    const newItem = list.lastElementChild;
-
-    Dom.removeClassFromAll(list.children, 'active');
-    newItem.classList.add('active');
-
-    return newItem;
-  }
 }
 
-// メインアプリケーションクラス
 class DetailsApp {
   constructor() {
     this.state = {
@@ -214,34 +181,34 @@ class DetailsApp {
 
     UIManager.updateDateDisplay(this.state.currentDate);
     this.setupEventListeners();
+
+    await this.loadAllCategories();
     await this.loadDailyData();
 
-    // 既存のカテゴリ・タスクに削除ボタンを追加
-    this.addDeleteButtonsToExistingItems();
-
-    // 初期状態で新規登録モードに設定
     this.startNewExpenseMode();
     this.startNewStudyMode();
     Dom.$('#addExpenseItemButton')?.classList.add('selected');
     Dom.$('#addStudyItemButton')?.classList.add('selected');
   }
 
-  addDeleteButtonsToExistingItems() {
-    Dom.$$('.category-item').forEach((item) => {
-      if (!item.querySelector('.delete-btn')) {
-        item.style.position = 'relative';
-        const name = item.dataset.category;
-        item.innerHTML += `<button class="delete-btn" data-type="category" data-name="${name}" title="削除"><img src="/trash-icon.svg" alt="削除" width="14" height="14"></button>`;
-      }
-    });
+  async loadAllCategories() {
+    const expensePromise = this.loadAndRenderCategories('#categoryList', '/api/expense_categories', 'category-item', 'category');
+    const studyPromise = this.loadAndRenderCategories('#taskList', '/api/study_categories', 'task-item', 'task');
+    await Promise.all([expensePromise, studyPromise]);
+  }
 
-    Dom.$$('.task-item').forEach((item) => {
-      if (!item.querySelector('.delete-btn')) {
-        item.style.position = 'relative';
-        const name = item.dataset.task;
-        item.innerHTML += `<button class="delete-btn" data-type="task" data-name="${name}" title="削除"><img src="/trash-icon.svg" alt="削除" width="14" height="14"></button>`;
-      }
-    });
+  async loadAndRenderCategories(listId, endpoint, itemClass, dataAttribute) {
+    const list = Dom.$(listId);
+    if (!list) return;
+    try {
+      const items = await ApiClient.get(endpoint);
+      list.innerHTML = '';
+      items.forEach((item) => {
+        list.insertAdjacentHTML('beforeend', Templates.listItem(itemClass, dataAttribute, item.name));
+      });
+    } catch (error) {
+      console.error(`Failed to load ${dataAttribute}s:`, error);
+    }
   }
 
   async loadDailyData() {
@@ -260,17 +227,13 @@ class DetailsApp {
   }
 
   setupEventListeners() {
-    // イベント委譲を使用
     document.addEventListener('click', this.handleClick.bind(this));
-
-    // 時間入力の数字制限
     const timeInput = Dom.$('#timeInput');
     if (timeInput) {
       timeInput.addEventListener('input', (e) => {
         e.target.value = e.target.value.replace(/[^0-9]/g, '');
       });
     }
-    // 日付ナビゲーション
     Dom.$('#prevDay')?.addEventListener('click', () => this.navigateDate(-1));
     Dom.$('#nextDay')?.addEventListener('click', () => this.navigateDate(1));
   }
@@ -279,105 +242,92 @@ class DetailsApp {
     const { target } = event;
     const closest = target.closest.bind(target);
 
-    // 削除ボタンのクリック処理
-    if (target.classList.contains('delete-btn')) {
+    const deleteBtn = closest('.delete-btn');
+    if (deleteBtn) {
       event.stopPropagation();
-      this.handleDelete(target);
+      this.handleDelete(deleteBtn);
       return;
     }
 
-    // 項目選択（編集モード）
     if (closest('.expense-item')) {
       const index = parseInt(closest('.expense-item').dataset.index, 10);
       this.editExpenseItem(index);
       return;
-    } if (closest('.study-item')) {
+    }
+    if (closest('.study-item')) {
       const index = parseInt(closest('.study-item').dataset.index, 10);
       this.editStudyItem(index);
       return;
     }
 
-    // 支出の「＋」ボタン
     if (target.id === 'addExpenseItemButton') {
       this.startNewExpenseMode();
-      target.classList.add('selected');
-      document.getElementById('addStudyItemButton')?.classList.remove('selected');
       return;
     }
-
-    // 学習の「＋」ボタン
     if (target.id === 'addStudyItemButton') {
       this.startNewStudyMode();
-      target.classList.add('selected');
-      document.getElementById('addExpenseItemButton')?.classList.remove('selected');
       return;
     }
 
-    // カテゴリー・タスク選択
-    if (target.matches('.category-item')) {
-      this.selectCategory(target);
+    if (closest('.category-item')) {
+      this.selectCategory(closest('.category-item'));
       return;
-    } if (target.matches('.task-item')) {
-      this.selectTask(target);
+    }
+    if (closest('.task-item')) {
+      this.selectTask(closest('.task-item'));
       return;
     }
 
-    // カテゴリー・タスク追加
     if (target.id === 'addCategoryButton') {
       this.addNewCategory();
       return;
-    } if (target.id === 'addTaskButton') {
+    }
+    if (target.id === 'addTaskButton') {
       this.addNewTask();
       return;
     }
 
-    // 登録ボタン
     if (target.id === 'logExpenseButton') {
       this.handleExpenseRegistration();
       return;
-    } if (target.id === 'logTimeButton') {
+    }
+    if (target.id === 'logTimeButton') {
       this.handleStudyRegistration();
       return;
     }
 
-    // 戻るボタン
-    if (target.matches('.back-btn')) {
+    if (closest('.back-btn')) {
       window.location.href = '/';
     }
   }
 
   async handleDelete(deleteBtn) {
-    const { type } = deleteBtn.dataset;
-    const { id } = deleteBtn.dataset;
-    const { name } = deleteBtn.dataset;
-
-    if (type === 'expense') {
-      if (confirm('この支出記録を削除しますか？')) {
-        await this.deleteExpense(id);
-      }
-    } else if (type === 'study') {
-      if (confirm('この学習記録を削除しますか？')) {
-        await this.deleteStudy(id);
-      }
-    } else if (type === 'category') {
-      if (confirm(`カテゴリ「${name}」を削除しますか？`)) {
-        this.deleteCategory(name);
-      }
-    } else if (type === 'task') {
-      if (confirm(`タスク「${name}」を削除しますか？`)) {
-        this.deleteTask(name);
-      }
+    const { type, id, name } = deleteBtn.dataset;
+    switch (type) {
+      case 'expense':
+        if (confirm('この支出記録を削除しますか？')) await this.deleteExpense(id);
+        break;
+      case 'study':
+        if (confirm('この学習記録を削除しますか？')) await this.deleteStudy(id);
+        break;
+      case 'category':
+        if (confirm(`カテゴリ「${name}」を削除しますか？`)) await this.deleteCategory(name);
+        break;
+      case 'task':
+        if (confirm(`タスク「${name}」を削除しますか？`)) await this.deleteTask(name);
+        break;
+      default:
+        break;
     }
   }
 
-  // カテゴリ・タスク削除機能を復活
-  deleteCategory(name) {
-    const categoryItem = document.querySelector(`[data-category="${name}"]`);
-    if (categoryItem) {
-      categoryItem.remove();
+  async deleteCategory(name) {
+    try {
+      await ApiClient.delete(`/api/expense_categories/${encodeURIComponent(name)}`);
+      const categoryItem = Dom.$(`[data-category="${name}"]`);
+      if (categoryItem) categoryItem.remove();
       if (this.state.selectedCategory === name) {
-        // 最初のカテゴリを選択
-        const firstCategory = document.querySelector('.category-item');
+        const firstCategory = Dom.$('.category-item');
         if (firstCategory) {
           firstCategory.classList.add('active');
           this.state.selectedCategory = firstCategory.dataset.category;
@@ -385,16 +335,18 @@ class DetailsApp {
           this.state.selectedCategory = null;
         }
       }
+    } catch (error) {
+      alert(`カテゴリの削除中にエラーが発生しました: ${error.message}`);
     }
   }
 
-  deleteTask(name) {
-    const taskItem = document.querySelector(`[data-task="${name}"]`);
-    if (taskItem) {
-      taskItem.remove();
+  async deleteTask(name) {
+    try {
+      await ApiClient.delete(`/api/study_categories/${encodeURIComponent(name)}`);
+      const taskItem = Dom.$(`[data-task="${name}"]`);
+      if (taskItem) taskItem.remove();
       if (this.state.selectedTask === name) {
-        // 最初のタスクを選択
-        const firstTask = document.querySelector('.task-item');
+        const firstTask = Dom.$('.task-item');
         if (firstTask) {
           firstTask.classList.add('active');
           this.state.selectedTask = firstTask.dataset.task;
@@ -402,15 +354,17 @@ class DetailsApp {
           this.state.selectedTask = null;
         }
       }
+    } catch (error) {
+      alert(`タスクの削除中にエラーが発生しました: ${error.message}`);
     }
   }
 
-  // データ記録の削除（API経由）
   async deleteExpense(id) {
     try {
       await ApiClient.delete(`/api/expense_logs/${id}`);
       alert('支出記録を削除しました。');
       await this.loadDailyData();
+      this.startNewExpenseMode();
     } catch (error) {
       alert(`削除中にエラーが発生しました: ${error.message}`);
     }
@@ -421,43 +375,40 @@ class DetailsApp {
       await ApiClient.delete(`/api/study_logs/${id}`);
       alert('学習記録を削除しました。');
       await this.loadDailyData();
+      this.startNewStudyMode();
     } catch (error) {
       alert(`削除中にエラーが発生しました: ${error.message}`);
     }
   }
 
   editExpenseItem(index) {
-    Object.assign(this.state, {
-      editingExpenseIndex: index,
-      isNewExpenseMode: false,
-    });
+    this.state.isNewExpenseMode = false;
+    this.state.editingExpenseIndex = index;
+    Dom.removeClassFromAll('.expense-item', 'selected');
+    Dom.$('#addExpenseItemButton')?.classList.remove('selected');
 
     const expense = this.state.expenses[index];
     if (expense) {
       Dom.updateValue('#amountInput', expense.amount);
       UIManager.selectByData('.category-item', 'category', expense.category);
       this.state.selectedCategory = expense.category;
+      Dom.$(`.expense-item[data-index="${index}"]`)?.classList.add('selected');
     }
-
-    UIManager.selectItem('.expense-item', index);
-    Dom.$('#addExpenseItemButton')?.classList.remove('selected');
   }
 
   editStudyItem(index) {
-    Object.assign(this.state, {
-      editingStudyIndex: index,
-      isNewStudyMode: false,
-    });
+    this.state.isNewStudyMode = false;
+    this.state.editingStudyIndex = index;
+    Dom.removeClassFromAll('.study-item', 'selected');
+    Dom.$('#addStudyItemButton')?.classList.remove('selected');
 
     const study = this.state.studies[index];
     if (study) {
       Dom.updateValue('#timeInput', Utils.formatTimeInput(study.duration_seconds));
       UIManager.selectByData('.task-item', 'task', study.category);
       this.state.selectedTask = study.category;
+      Dom.$(`.study-item[data-index="${index}"]`)?.classList.add('selected');
     }
-
-    UIManager.selectItem('.study-item', index);
-    Dom.$('#addStudyItemButton')?.classList.remove('selected');
   }
 
   navigateDate(days) {
@@ -468,25 +419,21 @@ class DetailsApp {
   }
 
   startNewExpenseMode() {
-    Object.assign(this.state, {
-      isNewExpenseMode: true,
-      editingExpenseIndex: null,
-      selectedCategory: null,
-    });
-
-    Dom.removeClassFromAll('.expense-item', 'selected');
+    this.state.isNewExpenseMode = true;
+    this.state.editingExpenseIndex = null;
     UIManager.resetInput('#amountInput', '.category-item');
+    Dom.removeClassFromAll('.expense-item', 'selected');
+    Dom.$('#addExpenseItemButton')?.classList.add('selected');
+    this.state.selectedCategory = null;
   }
 
   startNewStudyMode() {
-    Object.assign(this.state, {
-      isNewStudyMode: true,
-      editingStudyIndex: null,
-      selectedTask: null,
-    });
-
-    Dom.removeClassFromAll('.study-item', 'selected');
+    this.state.isNewStudyMode = true;
+    this.state.editingStudyIndex = null;
     UIManager.resetInput('#timeInput', '.task-item');
+    Dom.removeClassFromAll('.study-item', 'selected');
+    Dom.$('#addStudyItemButton')?.classList.add('selected');
+    this.state.selectedTask = null;
   }
 
   selectCategory(target) {
@@ -501,126 +448,95 @@ class DetailsApp {
     this.state.selectedTask = target.dataset.task;
   }
 
-  addNewCategory() {
+  async addNewCategory() {
     const name = prompt('新しいカテゴリ名を入力してください:');
     if (!name?.trim()) return;
-
-    const newItem = UIManager.addListItem('#categoryList', 'category-item', 'category', name.trim());
-    if (newItem) this.state.selectedCategory = name.trim();
+    try {
+      const newCategory = await ApiClient.post('/api/expense_categories', { name: name.trim() });
+      const list = Dom.$('#categoryList');
+      list.insertAdjacentHTML('beforeend', Templates.listItem('category-item', 'category', newCategory.name));
+      this.selectCategory(list.lastElementChild);
+    } catch (error) {
+      alert(`カテゴリの追加に失敗しました: ${error.message}`);
+    }
   }
 
-  addNewTask() {
+  async addNewTask() {
     const name = prompt('新しいタスク名を入力してください:');
     if (!name?.trim()) return;
-
-    const newItem = UIManager.addListItem('#taskList', 'task-item', 'task', name.trim());
-    if (newItem) this.state.selectedTask = name.trim();
+    try {
+      const newTask = await ApiClient.post('/api/study_categories', { name: name.trim() });
+      const list = Dom.$('#taskList');
+      list.insertAdjacentHTML('beforeend', Templates.listItem('task-item', 'task', newTask.name));
+      this.selectTask(list.lastElementChild);
+    } catch (error) {
+      alert(`タスクの追加に失敗しました: ${error.message}`);
+    }
   }
 
   async handleExpenseRegistration() {
     const amount = parseFloat(Dom.$('#amountInput').value);
-
-    if (Number.isNaN(amount) || amount <= 0) {
-      return alert('有効な金額を入力してください。');
-    }
-    if (!this.state.selectedCategory) {
-      return alert('カテゴリーを選択してください。');
-    }
+    if (Number.isNaN(amount) || amount <= 0) return alert('有効な金額を入力してください。');
+    if (!this.state.selectedCategory) return alert('カテゴリーを選択してください。');
 
     try {
-      let result;
       const payload = {
         title: this.state.selectedCategory,
         amount,
         date: this.state.currentDate,
       };
-
+      let result;
       if (this.state.isNewExpenseMode) {
         result = await ApiClient.post('/api/expense_logs', payload);
       } else if (this.state.editingExpenseIndex !== null) {
-        const expense = this.state.expenses[this.state.editingExpenseIndex];
-        result = await ApiClient.patch(`/api/expense_logs/${expense.id}`, payload);
+        const expenseId = this.state.expenses[this.state.editingExpenseIndex].id;
+        result = await ApiClient.patch(`/api/expense_logs/${expenseId}`, payload);
       } else {
         return alert('操作モードが不明です。');
       }
-
       alert(result.message);
       await this.loadDailyData();
-      this.resetExpenseState();
-      return true;
+      this.startNewExpenseMode();
     } catch (error) {
       alert(`支出の記録中にエラーが発生しました: ${error.message}`);
-      return false;
     }
   }
 
   async handleStudyRegistration() {
     const timeStr = Dom.$('#timeInput').value.trim();
-
-    if (!timeStr) {
-      return alert('時間を入力してください。（例: 013000 = 1時間30分）');
-    }
-    if (!this.state.selectedTask) {
-      return alert('タスクを選択してください。');
-    }
+    if (!timeStr) return alert('時間を入力してください。（例: 013000 = 1時間30分）');
+    if (!this.state.selectedTask) return alert('タスクを選択してください。');
 
     try {
       const durationSeconds = Utils.parseTimeInput(timeStr);
-      if (durationSeconds === 0) {
-        return alert('0より大きい時間を入力してください。');
-      }
+      if (durationSeconds <= 0) return alert('0より大きい時間を入力してください。');
 
       let result;
       if (this.state.isNewStudyMode) {
-        const postPayload = {
+        result = await ApiClient.post('/api/study_logs', {
           title: this.state.selectedTask,
-          duration: durationSeconds * 1000, // ← ミリ秒で送信（新規）
+          duration: durationSeconds * 1000,
           date: this.state.currentDate,
-        };
-        result = await ApiClient.post('/api/study_logs', postPayload);
+        });
       } else if (this.state.editingStudyIndex !== null) {
-        const study = this.state.studies[this.state.editingStudyIndex];
-        const patchPayload = {
+        const studyId = this.state.studies[this.state.editingStudyIndex].id;
+        result = await ApiClient.patch(`/api/study_logs/${studyId}`, {
           title: this.state.selectedTask,
-          duration: durationSeconds, // ← 秒で送信（更新）
+          duration: durationSeconds,
           date: this.state.currentDate,
-        };
-        result = await ApiClient.patch(`/api/study_logs/${study.id}`, patchPayload);
+        });
       } else {
         return alert('操作モードが不明です。');
       }
       alert(result.message);
       await this.loadDailyData();
-      this.resetStudyState();
-      return true;
+      this.startNewStudyMode();
     } catch (error) {
       alert(`学習時間の記録中にエラーが発生しました: ${error.message}`);
-      return false;
     }
-  }
-
-  resetExpenseState() {
-    this.state.editingExpenseIndex = null;
-    this.state.isNewExpenseMode = false;
-    Dom.updateValue('#amountInput', '');
-
-    // 登録後も新規登録モードに戻す
-    this.startNewExpenseMode();
-    Dom.$('#addExpenseItemButton')?.classList.add('selected');
-  }
-
-  resetStudyState() {
-    this.state.editingStudyIndex = null;
-    this.state.isNewStudyMode = false;
-    Dom.updateValue('#timeInput', '');
-
-    // 登録後も新規登録モードに戻す
-    this.startNewStudyMode();
-    Dom.$('#addStudyItemButton')?.classList.add('selected');
   }
 }
 
-// アプリケーション初期化
 document.addEventListener('DOMContentLoaded', () => {
   new DetailsApp().initialize();
 });

@@ -5,6 +5,7 @@ require_relative "../app/controllers/expense_logs_controller"
 require_relative "../app/controllers/study_logs_controller"
 require_relative "../app/controllers/summaries_controller"
 require_relative "../app/controllers/calendar_controller"
+require_relative "../app/controllers/categories_controller"
 
 module Config
   ROUTES = {
@@ -14,6 +15,8 @@ module Config
     "/api/expense_summary" => Controllers::SummariesController,
     "/api/study_summary" => Controllers::SummariesController,
     "/api/daily_details" => Controllers::SummariesController,
-    "/api/calendar_data" => Controllers::CalendarController
+    "/api/calendar_data" => Controllers::CalendarController,
+    "/api/expense_categories" => Controllers::CategoriesController,
+    "/api/study_categories" => Controllers::CategoriesController
   }.freeze
 end

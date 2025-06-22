@@ -173,10 +173,18 @@ html {
     height: 180px;
     overflow-y: auto;
     position: relative;
-    justify-content: flex-start;
+    scrollbar-width: thin;
 }
 
-.task-list, .category-list {
+.task-selection {
+    scrollbar-color: #b8cce0 transparent;
+}
+
+.category-selection {
+    scrollbar-color: #dcdcdc transparent;
+}
+
+.category-list, .task-list {
     list-style: none;
     padding: 0 5px;
     margin: 0;
@@ -190,6 +198,7 @@ html {
     text-align: center;
     font-weight: 500;
     color: #4a5568;
+    position: relative;
 }
 
 .category-item:last-child, .task-item:last-child {
@@ -225,23 +234,21 @@ html {
 .task-selection::-webkit-scrollbar, .category-selection::-webkit-scrollbar {
     width: 6px;
 }
+
 .task-selection::-webkit-scrollbar-track, .category-selection::-webkit-scrollbar-track {
     background: transparent;
     margin: 5px 0;
 }
+
 .task-selection::-webkit-scrollbar-thumb {
     background-color: #b8cce0;
     border-radius: 10px;
 }
+
 .category-selection::-webkit-scrollbar-thumb {
     background-color: #dcdcdc;
     border-radius: 10px;
 }
-.task-selection, .category-selection {
-    scrollbar-width: thin;
-}
-.task-selection { scrollbar-color: #b8cce0 transparent; }
-.category-selection { scrollbar-color: #dcdcdc transparent; }
 
 .add-task-btn, .add-category-btn, .log-btn {
     border: none;

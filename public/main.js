@@ -33,6 +33,18 @@ const API = {
       throw error;
     }
   },
+  async delete(endpoint) {
+    try {
+      const response = await fetch(endpoint, { method: 'DELETE' });
+      if (!response.ok && response.status !== 204) {
+        throw new Error('サーバーからの応答がありません');
+      }
+      return { success: true };
+    } catch (error) {
+      console.error(`DELETE Error for ${endpoint}:`, error);
+      throw error;
+    }
+  },
 };
 
 const UI = {
@@ -83,32 +95,52 @@ const UI = {
   },
 };
 
-// 削除処理関数
-function handleCategoryTaskDelete(event) {
-  if (!event.target.classList.contains('delete-btn')) return;
-
-  event.stopPropagation();
-  const { type } = event.target.dataset;
-  const { name } = event.target.dataset;
-
-  if (confirm(`${type === 'category' ? 'カテゴリ' : 'タスク'}「${name}」を削除しますか？`)) {
-    const item = event.target.closest('li');
-    if (item) {
-      item.remove();
-      // 削除した項目が選択されていた場合の処理
-      if (type === 'category') {
-        const firstItem = document.querySelector('.category-item');
-        if (firstItem) {
-          firstItem.classList.add('active');
-          window.selectedCategory = firstItem.dataset.category;
-        }
-      } else if (type === 'task') {
-        const firstItem = document.querySelector('.task-item');
-        if (firstItem) {
-          firstItem.classList.add('active');
-          window.selectedTask = firstItem.dataset.task;
+async function loadAndRenderItems(listElement, endpoint, itemClass, dataAttribute) {
+  try {
+    const items = await API.get(endpoint);
+    listElement.innerHTML = '';
+    items.forEach((item, index) => {
+      const newItem = UI.createNewListItem(listElement, itemClass, dataAttribute, item.name);
+      if (index === 0) {
+        newItem.classList.add('active');
+        if (dataAttribute === 'category') {
+          window.selectedCategory = item.name;
+        } else {
+          window.selectedTask = item.name;
         }
       }
+    });
+  } catch (error) {
+    alert(`${dataAttribute}の読み込みに失敗しました。`);
+  }
+}
+
+async function handleCategoryTaskDelete(event) {
+  const deleteBtn = event.target.closest('.delete-btn');
+  if (!deleteBtn) return;
+
+  event.stopPropagation();
+  const { type, name } = deleteBtn.dataset;
+  const endpoint = type === 'category' ? `/api/expense_categories/${encodeURIComponent(name)}` : `/api/study_categories/${encodeURIComponent(name)}`;
+
+  if (confirm(`${type === 'category' ? 'カテゴリ' : 'タスク'}「${name}」を削除しますか？`)) {
+    try {
+      await API.delete(endpoint);
+      const item = deleteBtn.closest('li');
+      if (item) {
+        item.remove();
+        const firstItem = document.querySelector(`.${type}-item`);
+        if (firstItem) {
+          firstItem.classList.add('active');
+          if (type === 'category') {
+            window.selectedCategory = firstItem.dataset.category;
+          } else {
+            window.selectedTask = firstItem.dataset.task;
+          }
+        }
+      }
+    } catch (error) {
+      alert('削除に失敗しました。');
     }
   }
 }
@@ -118,19 +150,16 @@ function setupExpenseTracker() {
   const categoryList = document.getElementById('categoryList');
   const addCategoryButton = document.getElementById('addCategoryButton');
   const logExpenseButton = document.getElementById('logExpenseButton');
-  window.selectedCategory = '食費';
 
-  categoryList.querySelectorAll('.category-item').forEach((item) => {
-    item.style.position = 'relative';
-    item.innerHTML += `<button class="delete-btn" data-type="category" data-name="${item.dataset.category}" title="削除"><img src="/trash-icon.svg" alt="削除" width="14" height="14"></button>`;
-  });
+  loadAndRenderItems(categoryList, '/api/expense_categories', 'category-item', 'category');
 
   if (categoryList) {
     categoryList.addEventListener('click', (event) => {
-      if (event.target.matches('.category-item')) {
+      const item = event.target.closest('.category-item');
+      if (item) {
         categoryList.querySelectorAll('.category-item').forEach((i) => i.classList.remove('active'));
-        event.target.classList.add('active');
-        window.selectedCategory = event.target.dataset.category;
+        item.classList.add('active');
+        window.selectedCategory = item.dataset.category;
       }
     });
     categoryList.addEventListener('click', handleCategoryTaskDelete);
@@ -141,6 +170,10 @@ function setupExpenseTracker() {
       const amount = parseFloat(amountInput.value);
       if (Number.isNaN(amount) || amount <= 0) {
         alert('有効な金額を入力してください。');
+        return false;
+      }
+      if (!window.selectedCategory) {
+        alert('カテゴリーを選択してください。');
         return false;
       }
       try {
@@ -158,20 +191,19 @@ function setupExpenseTracker() {
   }
 
   if (addCategoryButton) {
-    addCategoryButton.addEventListener('click', () => {
+    addCategoryButton.addEventListener('click', async () => {
       const name = prompt('新しいカテゴリ名を入力してください:');
       if (!name || !name.trim()) return;
       const trimmedName = name.trim();
-      const existing = Array.from(categoryList.children).some((item) => item.dataset.category === trimmedName);
-      if (existing) {
-        alert('同じ名前のカテゴリが既に存在します。');
-        return false;
+      try {
+        const newCategory = await API.post('/api/expense_categories', { name: trimmedName });
+        const newItem = UI.createNewListItem(categoryList, 'category-item', 'category', newCategory.name);
+        categoryList.querySelectorAll('.category-item').forEach((i) => i.classList.remove('active'));
+        newItem.classList.add('active');
+        window.selectedCategory = newCategory.name;
+      } catch (error) {
+        alert(`カテゴリの追加に失敗しました: ${error.message}`);
       }
-      const newItem = UI.createNewListItem(categoryList, 'category-item', 'category', trimmedName);
-      categoryList.querySelectorAll('.category-item').forEach((i) => i.classList.remove('active'));
-      newItem.classList.add('active');
-      window.selectedCategory = trimmedName;
-      return true;
     });
   }
 }
@@ -181,47 +213,47 @@ function setupStudyTracker() {
   const addTaskButton = document.getElementById('addTaskButton');
   const playPauseButton = document.getElementById('playPauseButton');
   const logTimeButton = document.getElementById('logTimeButton');
-  window.selectedTask = 'Ruby';
   let isStopwatchRunning = false;
 
-  taskList.querySelectorAll('.task-item').forEach((item) => {
-    item.style.position = 'relative';
-    item.innerHTML += `<button class="delete-btn" data-type="task" data-name="${item.dataset.task}" title="削除"><img src="/trash-icon.svg" alt="削除" width="14" height="14"></button>`;
-  });
+  loadAndRenderItems(taskList, '/api/study_categories', 'task-item', 'task');
 
   if (taskList) {
     taskList.addEventListener('click', (event) => {
-      if (event.target.matches('.task-item')) {
+      const item = event.target.closest('.task-item');
+      if (item) {
         taskList.querySelectorAll('.task-item').forEach((i) => i.classList.remove('active'));
-        event.target.classList.add('active');
-        window.selectedTask = event.target.dataset.task;
+        item.classList.add('active');
+        window.selectedTask = item.dataset.task;
       }
     });
     taskList.addEventListener('click', handleCategoryTaskDelete);
   }
 
   if (addTaskButton) {
-    addTaskButton.addEventListener('click', () => {
+    addTaskButton.addEventListener('click', async () => {
       const name = prompt('新しいタスク名を入力してください:');
       if (!name || !name.trim()) return;
       const trimmedName = name.trim();
-      const existing = Array.from(taskList.children).some((item) => item.dataset.task === trimmedName);
-      if (existing) {
-        alert('同じ名前のタスクが既に存在します。');
-        return false;
+      try {
+        const newTask = await API.post('/api/study_categories', { name: trimmedName });
+        const newItem = UI.createNewListItem(taskList, 'task-item', 'task', newTask.name);
+        taskList.querySelectorAll('.task-item').forEach((i) => i.classList.remove('active'));
+        newItem.classList.add('active');
+        window.selectedTask = newTask.name;
+      } catch (error) {
+        alert(`タスクの追加に失敗しました: ${error.message}`);
       }
-      const newItem = UI.createNewListItem(taskList, 'task-item', 'task', trimmedName);
-      taskList.querySelectorAll('.task-item').forEach((i) => i.classList.remove('active'));
-      newItem.classList.add('active');
-      window.selectedTask = trimmedName;
-      return true;
     });
   }
 
   if (playPauseButton) {
     playPauseButton.addEventListener('click', () => {
       isStopwatchRunning = !isStopwatchRunning;
-      isStopwatchRunning ? startStopwatch() : stopStopwatch();
+      if (isStopwatchRunning) {
+        startStopwatch();
+      } else {
+        stopStopwatch();
+      }
       UI.updatePlayPauseButton(isStopwatchRunning);
       UI.toggleStopwatchRunningClass(isStopwatchRunning);
     });
@@ -232,6 +264,10 @@ function setupStudyTracker() {
       const duration = getCurrentElapsedTime();
       if (duration === 0 && !isStopwatchRunning) {
         alert('記録する時間がありません。ストップウォッチを開始してください。');
+        return false;
+      }
+      if (!window.selectedTask) {
+        alert('タスクを選択してください。');
         return false;
       }
       if (isStopwatchRunning) {
