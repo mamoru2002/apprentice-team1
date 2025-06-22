@@ -18,6 +18,7 @@ module DB
     # SELECT文など、データを「取得」するためのメソッド
     def select(sql, params = [])
       client = connect
+      client.query("SET NAMES utf8mb4")
       statement = client.prepare(sql)
       statement.execute(*params)&.to_a
     rescue Mysql2::Error => e
@@ -30,10 +31,14 @@ module DB
     # INSERT, UPDATE, DELETEなど、データを「変更」するためのメソッド
     def execute(sql, params = [])
       client = connect
+      client.query("SET NAMES utf8mb4") # この行を追加
       statement = client.prepare(sql)
       statement.execute(*params)
-      # 変更された行数を返す
-      client.affected_rows
+      if sql.strip.start_with?("INSERT")
+        client.last_id
+      else
+        client.affected_rows
+      end
     rescue Mysql2::Error => e
       handle_error(e, sql, params)
       raise
