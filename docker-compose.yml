@@ -5,6 +5,7 @@ services:
       - "4567:4567"
     volumes:
       - .:/app
+      - /app/node_modules
     depends_on:
       db:
         condition: service_healthy

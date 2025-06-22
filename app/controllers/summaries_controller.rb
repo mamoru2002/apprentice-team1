@@ -8,7 +8,7 @@ require "date"
 module Controllers
   class SummariesController < ApplicationController
     def do_GET(req, res)
-      set_cors_headers(res)
+      apply_cors_headers(res)
 
       case req.path
       when "/api/expense_summary"
@@ -30,12 +30,11 @@ module Controllers
     private
 
     def handle_expense_summary(req, res)
-      month_str = req.query['month'] || Date.today.strftime('%Y-%m')
+      month_str = req.query["month"] || Date.today.strftime("%Y-%m")
       target_month = Date.parse("#{month_str}-01")
 
       start_of_month = Date.new(target_month.year, target_month.month, 1)
       end_of_month = start_of_month.next_month.prev_day
-
 
       monthly_result = DB.client.select(
         "SELECT SUM(amount) AS total FROM expense_logs WHERE date BETWEEN ? AND ?",
@@ -50,19 +49,17 @@ module Controllers
     end
 
     def handle_study_summary(req, res)
-      month_str = req.query['month'] || Date.today.strftime('%Y-%m')
+      month_str = req.query["month"] || Date.today.strftime("%Y-%m")
       target_month = Date.parse("#{month_str}-01")
 
       start_of_month = Date.new(target_month.year, target_month.month, 1)
       end_of_month = start_of_month.next_month.prev_day
-
 
       monthly_result = DB.client.select(
         "SELECT SUM(duration) AS total FROM study_logs WHERE date BETWEEN ? AND ?",
         [start_of_month, end_of_month],
       ).first
       monthly_total_seconds = (monthly_result[:total] || 0).to_i
-
 
       grand_result = DB.client.select("SELECT SUM(duration) AS total FROM study_logs").first
       grand_total_seconds = (grand_result[:total] || 0).to_i
@@ -83,7 +80,8 @@ module Controllers
     end
 
     def valid_date?(date_str)
-      return false unless date_str && date_str.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+      return false unless date_str&.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+
       Date.parse(date_str)
       true
     rescue Date::Error
@@ -91,15 +89,14 @@ module Controllers
     end
 
     def fetch_and_render_daily_details(res, date)
-
       expense_records = DB.client.select(
         "SELECT id, amount, title FROM expense_logs WHERE date = ?",
-        [date]
+        [date],
       )
 
       study_records = DB.client.select(
         "SELECT id, duration, title FROM study_logs WHERE date = ?",
-        [date]
+        [date],
       )
 
       response_body = {
