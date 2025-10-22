@@ -53,4 +53,24 @@ class ApplicationController < WEBrick::HTTPServlet::AbstractServlet
     warn "Unexpected error: #{error.class} - #{error.message}"
     render_json(res, status: 500, body: { error: "サーバーで予期せぬエラーが発生しました。" })
   end
+
+  protected
+
+  def extract_positive_integer(raw)
+    return nil if raw.nil?
+
+    str = raw.to_s.strip
+    return nil unless str.match?(/\A\d+\z/)
+
+    value = str.to_i
+    value.positive? ? value : nil
+  end
+
+  def require_user_id!(req, res)
+    user_id = extract_positive_integer(req.query["user_id"])
+    return user_id if user_id
+
+    render_json(res, status: 400, body: { error: "user_id パラメータは必須です。" })
+    nil
+  end
 end

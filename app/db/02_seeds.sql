@@ -2,6 +2,13 @@
 SET NAMES utf8mb4;
 
 -- 既存のデータをクリア
+DELETE FROM placements;
+DELETE FROM work_item_motivations;
+DELETE FROM work_item_preferences;
+DELETE FROM motivation_masters;
+DELETE FROM preference_masters;
+DELETE FROM work_items;
+DELETE FROM users;
 DELETE FROM study_logs;
 DELETE FROM expense_logs;
 
@@ -611,3 +618,30 @@ INSERT INTO expense_logs (amount, title, date) VALUES
 (644, '衣服', '2025-09-19'),
 (1405, '日用品', '2025-09-19'),
 (1732, '食費', '2025-09-19');
+
+-- Step3/Step4 用の初期データ
+INSERT INTO users (id, email, name, timezone) VALUES
+(1, 'demo@example.com', 'デモユーザー', 'Asia/Tokyo');
+
+INSERT INTO work_items (id, user_id, name, energy_percentage, reframe, before_sketch_url) VALUES
+(1, 1, '朝のルーティンを整える', 75.00, 'ゆるやかに始める', 'https://example.com/images/before-sketch-demo.png');
+
+INSERT INTO motivation_masters (id, user_id, name) VALUES
+(1, 1, '健康を維持したい'),
+(2, 1, '時間を有効活用したい');
+
+INSERT INTO preference_masters (id, user_id, name) VALUES
+(1, 1, '静かな場所で作業したい'),
+(2, 1, '朝の光を浴びたい');
+
+INSERT INTO work_item_motivations (user_id, work_item_id, motivation_master_id) VALUES
+(1, 1, 1),
+(1, 1, 2);
+
+INSERT INTO work_item_preferences (user_id, work_item_id, preference_master_id) VALUES
+(1, 1, 1),
+(1, 1, 2);
+
+INSERT INTO placements (user_id, work_item_id, kind, master_id, x, y) VALUES
+(1, 1, 'motivation', 1, 0.3200, 0.4200),
+(1, 1, 'preference', 1, 0.5600, 0.6800);
